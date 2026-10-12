@@ -1,0 +1,480 @@
+openapi: 3.2.0
+info:
+  version: 3.0.0
+  title: BTC Markets Market Data APIs API
+  contact:
+    name: API Support
+    email: support@btcmarkets.net
+    url: http://btcmarkets.net
+  x-logo:
+    url: /doc/images/small-logo.png
+    altText: BtcMarkets logo
+  description: '# Introduction
+
+    Welcome to BTC Markets API v3.'
+servers:
+- url: https://api.btcmarkets.net
+  description: Production
+tags:
+- name: Market Data APIs
+paths:
+  /v3/markets:
+    get:
+      tags:
+      - Market Data APIs
+      summary: List Active Markets
+      description: 'Retrieves list of active markets including configuration for each market.
+
+
+        * `marketId`: marketId is used across the system
+
+        * `baseAssetName`: the asset being purchased or sold. In the case of `ETH-AUD`, the base asset is `ETH`.
+
+        * `quoteAssetName`: the asset that is used to price the base asset. In the case of `ETH-AUD`, the quote asset is `AUD`.
+
+        * `minOrderAmount`: minimum amount for an order
+
+        * `maxOrderAmount`: maximum amount for an order
+
+        * `amountDecimals`: maximum number of decimal places can be used for amounts
+
+        * `priceDecimals`: represents number of decimal places can be used for price when placing orders. For instance, for `BTC-AUD` market, priceDecimals is 2 meaning that a price of `100.12` is valid but `100.123` is not.
+
+        * `status`: current status of market, can be Online, Offline, Post Only, Limit Only, or Cancel Only'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                basic:
+                  $ref: '#/components/examples/MarketsExample'
+      operationId: getV3Markets
+      x-operation-id-source: derived
+  /v3/markets/{marketId}/ticker:
+    get:
+      tags:
+      - Market Data APIs
+      summary: Get Market Ticker
+      description: 'Retrieves ticker for the given marketId.
+
+        * `marketId`: marketId is used across the system
+
+        * `bestBid`: best buy order price
+
+        * `bestAsk`: best sell order price
+
+        * `lastPrice`: price of the last trade
+
+        * `volume24h`: represents total trading volume over the past 24 hours for the given market
+
+        * `volumeQte24h`: total volume over the past 24 hours in quote asset
+
+        * `price24h`: price change (difference between the first and last price over 24 hours)
+
+        * `pricePct24h`: percentage of price change
+
+        * `low24`: lowest price over the past 24 hours
+
+        * `high24`: highest price over the past 24 hours
+
+        * `timestamp`: timestamp'
+      parameters:
+      - name: marketId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                basic:
+                  $ref: '#/components/examples/MarketTickerExample'
+        '404':
+          description: Market not Found
+      operationId: getV3MarketsByMarketIdTicker
+      x-operation-id-source: derived
+  /v3/markets/{marketId}/trades:
+    get:
+      tags:
+      - Market Data APIs
+      summary: Get Market Trades
+      description: Retrieves list of most recent trades for the given market. This API supports pagination.
+      parameters:
+      - name: marketId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: before
+        in: query
+        required: false
+        description: This is part of the pagination parameters.
+        schema:
+          type: integer
+          format: int64
+        example: 78234976
+      - name: after
+        in: query
+        required: false
+        description: This is part of the pagination parameters.
+        schema:
+          type: integer
+          format: int64
+        example: 78234876
+      - name: limit
+        in: query
+        description: This is part of the pagination parameters.
+        required: false
+        schema:
+          type: integer
+          format: int32
+        example: 10
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                basic:
+                  $ref: '#/components/examples/MarketTradesExample'
+      operationId: getV3MarketsByMarketIdTrades
+      x-operation-id-source: derived
+  /v3/markets/{marketId}/orderbook:
+    get:
+      tags:
+      - Market Data APIs
+      summary: Get Market Orderbook
+      description: Retrieves list of bids and asks for a given market. Passing `level=1` returns top 50 for bids and asks. `level=0` reurns top bids and ask orders only. `level=2` returns full orderbook (full orderbook data is cached and usually updated every 10 seconds). Each market order is represented as an array of string `[price, volume]`. The attribute `snapshotId` is a unique number associated to orderbook and it changes every time orderbook changes.
+      parameters:
+      - name: marketId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: level
+        in: query
+        required: false
+        description: specifies the depth of the orderbook and possible values are 0, 1 and 2. Default level is 1 if not specified.
+        schema:
+          type: integer
+        example: 1
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                basic:
+                  $ref: '#/components/examples/MarketOrderbookL1Example'
+      operationId: getV3MarketsByMarketIdOrderbook
+      x-operation-id-source: derived
+  /v3/markets/{marketId}/candles:
+    get:
+      tags:
+      - Market Data APIs
+      summary: Get Market Candles
+      description: 'Retrieves array of candles for a given market. Each candle record is an array of string representing `[time,open,high,low,close,volume]` for the time window specified (default time window is 1 day).
+
+
+        This API can be used to retrieve candles either by pagination (`before`, `after`, `limit`) or by specifying timestamp parameters (`from` and/or `to`). Pagination parameters can''t be combined with timestamp parameters and the default behavior is pagination when no query param is specified.
+
+
+        When using timestamp parameters as query string, the maximum number of items that can be retrieved is 1000. Depending on the specified timeWindow, this can be different time windows. For instance, when using `timeWindow=1d`, up to 1000 days of market candles can be retrieved.'
+      parameters:
+      - name: marketId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: timeWindow
+        in: query
+        required: false
+        description: values can be `1m`, `3m`, `5m`, `15m`, `30m`, `1h`, `2h`, `3h`, `4h`, `6h`, `1d`, `1w` and `1mo` representing 1 minute, 3 minutes, 5 minutes, 15 minutes, 30 minutes, 1 hour, 2 hours, 3 hours, 4 hours, 6 hours, 1 day, 1 week and 1 month. Default value is `1d` if not specified.
+        schema:
+          type: string
+        example: 1h
+      - name: from
+        in: query
+        required: false
+        description: allows retrieving market candles from a specific time. The value is of the type timestamp and must be in ISO 8601 format. e.g. `2018-08-20T06:22:11.000000Z`.
+        schema:
+          type: string
+      - name: to
+        in: query
+        required: false
+        description: allows retrieving market candles up to a specific time. The value is of the type timestamp and must be in ISO 8601 format. e.g. `2019-08-20T06:22:11.000000Z`.
+        schema:
+          type: string
+      - name: before
+        in: query
+        required: false
+        description: This is part of the pagination parameters.
+        schema:
+          type: integer
+          format: int64
+        example: 78234976
+      - name: after
+        in: query
+        required: false
+        description: This is part of the pagination parameters.
+        schema:
+          type: integer
+          format: int64
+        example: 78234876
+      - name: limit
+        in: query
+        description: This is part of the pagination parameters.
+        required: false
+        schema:
+          type: integer
+          format: int32
+        example: 10
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                basic:
+                  $ref: '#/components/examples/MarketCandlesExample'
+      operationId: getV3MarketsByMarketIdCandles
+      x-operation-id-source: derived
+  /v3/markets/tickers:
+    get:
+      tags:
+      - Market Data APIs
+      summary: Get Multiple Tickers
+      description: 'This API works similar to `/v3/markets/{marketId}/ticker` except it retrieves tickers for a given list of marketIds provided via query string (e.g. `?marketId=ETH-BTC&marketId=XRP-BTC`).
+
+
+        To gain better performance, restrict the number of `marketIds` to the items needed for your trading app instead of requesting all markets.'
+      parameters:
+      - name: marketId
+        in: query
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                basic:
+                  $ref: '#/components/examples/MarketTickerListExample'
+      operationId: getV3MarketsTickers
+      x-operation-id-source: derived
+  /v3/markets/orderbooks:
+    get:
+      tags:
+      - Market Data APIs
+      summary: Get Multiple Orderbooks
+      description: 'This API works similar to `/v3/markets/{marketId}/orderbook` except it retrieves orderbooks for a given list of marketIds provided via query string (e.g. `?marketId=ETH-BTC&marketId=XRP-BTC`).
+
+
+        To gain better performance, restrict the number of `marketIds` to the items needed for your trading app instead of requesting all markets.
+
+
+        Retrieving full orderbook (`level=2`) for multiple markets was mainly provided for customers who are interested in capturing and keeping full orderbook history. Therefore, it is recommended to call this API with lower frequency as the data size can be large and also cached.'
+      parameters:
+      - name: marketId
+        in: query
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                basic:
+                  $ref: '#/components/examples/MarketOrderbookL1ListExample'
+      operationId: getV3MarketsOrderbooks
+      x-operation-id-source: derived
+components:
+  examples:
+    MarketsExample:
+      value:
+      - marketId: BTC-AUD
+        baseAssetName: BTC
+        quoteAssetName: AUD
+        minOrderAmount: '0.0001'
+        maxOrderAmount: '1000000'
+        amountDecimals: '8'
+        priceDecimals: '2'
+        status: Online
+      - marketId: LTC-AUD
+        baseAssetName: LTC
+        quoteAssetName: AUD
+        minOrderAmount: '0.001'
+        maxOrderAmount: '1000000'
+        amountDecimals: '8'
+        priceDecimals: '2'
+        status: Post Only
+      summary: list of markets
+    MarketTickerExample:
+      value:
+        marketId: BAT-AUD
+        bestBid: '0.2612'
+        bestAsk: '0.2677'
+        lastPrice: '0.2652'
+        volume24h: '6392.34930418'
+        volumeQte24h: '1.39'
+        price24h: '130'
+        pricePct24h: '0.002'
+        low24h: '0.2621'
+        high24h: '0.2708'
+        timestamp: '2019-09-01T10:35:04.940000Z'
+      summary: market ticker
+    MarketCandlesExample:
+      value:
+      - - '2019-09-02T18:00:00.000000Z'
+        - '15100'
+        - '15200'
+        - '15100'
+        - '15199'
+        - '4.11970335'
+      - - '2019-09-02T17:00:00.000000Z'
+        - '14879.75'
+        - '15115'
+        - '14861.99'
+        - '15115'
+        - '10.01840031'
+      summary: market orderbook level 2
+    MarketOrderbookL1ListExample:
+      value:
+      - marketId: BAT-AUD
+        snapshotId: 1567334110144000
+        asks:
+        - - '0.2677'
+          - '5665.85'
+        - - '0.2681'
+          - '52355'
+        - - '0.271'
+          - '1316'
+        - - '0.2782'
+          - '2500'
+        bids:
+        - - '0.2612'
+          - '2.93273959'
+        - - '0.2611'
+          - '17847.844'
+      - marketId: LTC-AUD
+        snapshotId: 1567334110146000
+        asks:
+        - - '10.2677'
+          - '5665.85'
+        - - '10.2681'
+          - '52355'
+        - - '10.271'
+          - '1316'
+        - - '10.2782'
+          - '2500'
+        bids:
+        - - '10.2612'
+          - '2.93273959'
+        - - '10.2611'
+          - '17847.844'
+      summary: market orderbook level 1
+    MarketTickerListExample:
+      value:
+      - marketId: BTC-AUD
+        bestBid: '9000'
+        bestAsk: '9900'
+        lastPrice: '8500'
+        volume24h: '1444.44'
+        volumeQte24h: '0.523'
+        price24h: '130'
+        pricePct24h: '0.002'
+        low24h: '12'
+        high24h: '50000'
+        timestamp: '2019-07-31T21:32:08.659000Z'
+      - marketId: LTC-AUD
+        bestBid: '99.12'
+        bestAsk: '101.14'
+        lastPrice: '100'
+        volume24h: '1199.8'
+        volumeQte24h: '1.09'
+        price24h: '10'
+        pricePct24h: '0.001'
+        low24h: '100'
+        high24h: '120'
+        timestamp: '2019-05-02T15:22:51.770000Z'
+      summary: market ticker
+    MarketTradesExample:
+      value:
+      - id: '4107372347'
+        price: '0.265'
+        amount: '11.25'
+        timestamp: '2019-09-02T12:49:42.874000Z'
+        side: Ask
+      - id: '4107297908'
+        price: '0.265'
+        amount: '250'
+        timestamp: '2019-09-02T12:15:29.570000Z'
+        side: Bid
+      summary: market trades
+    MarketOrderbookL1Example:
+      value:
+        marketId: BAT-AUD
+        snapshotId: 1567334110144000
+        asks:
+        - - '0.2677'
+          - '5665.85'
+        - - '0.2681'
+          - '52355'
+        - - '0.271'
+          - '1316'
+        - - '0.2782'
+          - '2500'
+        bids:
+        - - '0.2612'
+          - '2.93273959'
+        - - '0.2611'
+          - '17847.844'
+      summary: market orderbook level 1
+x-tagGroups:
+- name: Order Matching
+  tags:
+  - order_status
+  - OrderTypes
+  - StopOrders
+  - ClientOrderId
+  - Timeinforce
+  - TargetAmount
+  - PostOnly
+  - SelfTrade
+  - market_status
+- name: APIs
+  tags:
+  - Market Data APIs
+  - Order Placement APIs
+  - Batch Order APIs
+  - Trade APIs
+  - Fund Management APIs
+  - Account APIs
+  - Report APIs
+  - Misc APIs
+  - ErrorCodes
+- name: WebSocket Feed
+  tags:
+  - WS_Overview
+  - WS_Public_Events
+  - WS_Private_Events
+- name: FIX API
+  tags:
+  - fix_introduction
+  - fix_order_entry
+  - fix_drop_copy
+  - fix_market_data
+  - fix_messages
+x-provenance:
+  method: searched
+  source: https://docs.btcmarkets.net/doc/openapi/index.yaml
+  generated: '2026-10-13'
+  note: Bundled from the provider-published multi-file OpenAPI (index.yaml, path/orders.yaml, components/index.yaml, info/index.yaml); verbatim sources in openapi/source/. Only external file $refs were inlined.

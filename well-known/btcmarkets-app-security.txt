@@ -1,0 +1,5 @@
+Contact: https://support.btcmarkets.net/hc/en-us/requests/new?ticket_form_id=8346694192537
+Expires: 2028-01-01T10:50:00Z
+Hiring: https://www.linkedin.com/company/btc-markets
+Policy: https://www.btcmarkets.net/bug-bounty
+Preferred-Languages: en

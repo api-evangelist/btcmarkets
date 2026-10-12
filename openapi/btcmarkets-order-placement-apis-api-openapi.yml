@@ -1,0 +1,438 @@
+openapi: 3.2.0
+info:
+  version: 3.0.0
+  title: BTC Markets Order Placement APIs API
+  contact:
+    name: API Support
+    email: support@btcmarkets.net
+    url: http://btcmarkets.net
+  x-logo:
+    url: /doc/images/small-logo.png
+    altText: BtcMarkets logo
+  description: '# Introduction
+
+    Welcome to BTC Markets API v3.'
+servers:
+- url: https://api.btcmarkets.net
+  description: Production
+tags:
+- name: Order Placement APIs
+paths:
+  /v3/orders:
+    post:
+      tags:
+      - Order Placement APIs
+      summary: Place new Order
+      description: This API is used to place a new order. Some of the parameters are mandatory as specified below. The right panel presents the default response with primary attributes. You can also select from the drop down to see an order response with all possible order attributes.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+              - description: Place new order
+                title: New order request
+              - $ref: '#/components/schemas/PlaceOrderRequest'
+            examples:
+              bid:
+                summary: new order example
+                value:
+                  marketId: BTC-AUD
+                  price: '100.12'
+                  amount: '1.034'
+                  type: Limit
+                  side: Bid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+              examples:
+                basic:
+                  $ref: '#/components/examples/BasicOrderExample'
+                allAttributes:
+                  $ref: '#/components/examples/AllOrderExample'
+        '400':
+          content:
+            application/json:
+              examples:
+                missingParam:
+                  summary: missing clientOrderId
+                  value:
+                    code: InvalidMarketId
+                    message: invalid marketId
+        '401':
+          description: Not Authorized
+        '403':
+          description: Forbidden
+      x-code-samples:
+      - lang: Javascript
+        source: "const crypto = require('crypto');\nconst https = require('https');\n\nconst apiKey = \"add api key here\";\nconst privateKey = \"add private key here\";\n\nconst placeOrderDataObj = {marketId: 'XRP-AUD',price: '0.34', amount:\"1.0\", side: \"Bid\", type: \"Limit\" };\nconst data = JSON.stringify(placeOrderDataObj);\nconst path = '/v3/orders';\n\nconst now = Date.now();\nconst message =  \"POST\" + path + now + data;\n\nvar buffer = Buffer.from(privateKey, 'base64');\nvar hmac = crypto.createHmac('sha512', buffer);\nconst signature = hmac.update(message).digest('base64');\n\nconst headers = {\n\t\t\"Accept\": \"application/json\",\n\t\t'Content-Length': Buffer.byteLength(data),\n\t\t\"Content-Type\": \"application/json\",\n\t\t\"BM-AUTH-APIKEY\": apiKey,\n\t\t\"BM-AUTH-TIMESTAMP\": now,\n\t\t\"BM-AUTH-SIGNATURE\": signature\n};\nvar postOptions = {host: \"api.btcmarkets.net\", path: path, method: 'POST', headers: headers};\nvar postReq = https.request(postOptions, function(res) {\n\tres.on('data', function (chunk) {\n\t\tconsole.log('Http Response Code: ' + res.statusCode);\n\t\tconsole.log('Response: ' + chunk);\n\t});\n});\n\npostReq.write(data);\npostReq.end();\n"
+      operationId: postV3Orders
+      x-operation-id-source: derived
+    get:
+      summary: List Orders
+      description: Returns an array of historical orders or open orders only. All query string parameters are optional, so by default and when no query parameter is provided, this API retrieves open orders only for all markets. This API supports pagination only when retrieving all orders `status=all`. When sending using `status=open`, all open orders are returned and with no pagination.
+      tags:
+      - Order Placement APIs
+      operationId: listOrders
+      parameters:
+      - name: marketId
+        in: query
+        required: false
+        description: by default orders for all markets are returned. Specify a marketId for filtering.
+        schema:
+          type: string
+        example: ETH-AUD
+      - name: before
+        in: query
+        required: false
+        description: This is part of the pagination parameters.
+        schema:
+          type: integer
+          format: int64
+        example: 78234976
+      - name: after
+        in: query
+        required: false
+        description: This is part of the pagination parameters.
+        schema:
+          type: integer
+          format: int64
+        example: 78234876
+      - name: limit
+        in: query
+        description: This is part of the pagination parameters.
+        required: false
+        schema:
+          type: integer
+          format: int32
+        example: 50
+      - name: status
+        in: query
+        description: returns orders with open status or all statuses
+        required: false
+        schema:
+          type: string
+          enum:
+          - open
+          - all
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                basic:
+                  $ref: '#/components/examples/BasicOrderExample'
+    delete:
+      summary: Cancel Open Orders
+      tags:
+      - Order Placement APIs
+      operationId: cancelOrders
+      description: Cancels all open orders for all markets or optionally for a given list of marketIds only.
+      parameters:
+      - name: marketId
+        in: query
+        required: false
+        description: restricts cancellation for those given marketIds only. Can be provided in the form of `marketId=BTC-AUD&marketId=ETH-AUD`
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CancelOrderResponse'
+              examples:
+                basic:
+                  $ref: '#/components/examples/CancelledOrderExamples'
+  /v3/orders/{id}:
+    get:
+      tags:
+      - Order Placement APIs
+      operationId: getOrderById
+      summary: Get an Order
+      description: Returns an order by using either the exchange `orderId` or `clientOrderId`.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                basic:
+                  $ref: '#/components/examples/BasicOrderExample'
+        '404':
+          description: Not found
+    delete:
+      summary: Cancel an Order
+      tags:
+      - Order Placement APIs
+      operationId: cancelOrder
+      description: Cancels a single order. This API returns an HTTP error `400` if the order is already canceled, matched, or partially canceled.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CancelOrderResponse'
+              examples:
+                basic:
+                  $ref: '#/components/examples/CancelledOrderExample'
+    put:
+      tags:
+      - Order Placement APIs
+      operationId: replaceOrderById
+      summary: Replace an Order
+      description: 'This API combines both cancel and placement operations in a single API call.
+
+
+        Upon calling this API, the system attempts to cancel the existing order. If the cancel operation is successful, then a new order is placed with exactly the same attributes (e.g., type, marketId, etc.) except for the `price` and `amount` that are provided as input to this API.
+
+
+        Note:
+
+        * The underlying actions of canceling an existing order and placing a new order at this stage are not atomic due to the asynchronous nature of the system.
+
+        This means that although we make our best effort to make sure the existing order is canceled successfully before placing a new order, there can be situations where the existing order may still execute and the new order is also placed (in particular, this can happen in situations when the market moves quickly in a few milliseconds).
+
+        * For simplicity''s sake, this API returns all attributes of the new order including new orderId (and new clientOrderId, if provided).
+
+        * This API also returns all possible errors that may occur during normal cancellation and order placement.'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+              - description: Replace an order
+                title: Replace order request
+              - $ref: '#/components/schemas/ReplaceOrderRequest'
+            examples:
+              bid:
+                summary: replace order example
+                value:
+                  price: '100.12'
+                  amount: '1.034'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+              examples:
+                basic:
+                  $ref: '#/components/examples/BasicOrderExample'
+                allAttributes:
+                  $ref: '#/components/examples/AllOrderExample'
+        '400':
+          content:
+            application/json:
+              examples:
+                missingParam:
+                  summary: missing clientOrderId
+                  value:
+                    code: OrderStatusIsFinal
+                    message: Order cancellation is not allowed
+components:
+  examples:
+    AllOrderExample:
+      value:
+        orderId: '7524'
+        marketId: BTC-AUD
+        side: Bid
+        type: Limit
+        creationTime: '2019-08-30T11:08:21.956000Z'
+        price: '100.12'
+        amount: '1.034'
+        openAmount: '1.034'
+        status: Accepted
+        clientOrderId: 1234-5678
+        timeInForce: IOC
+        postOnly: false
+        selfTrade: P
+        triggerAmount: '105'
+        targetAmount: '1000'
+      summary: all order attributes
+    CancelledOrderExamples:
+      value:
+      - orderId: '7524'
+        clientOrderId: 123-456
+      - orderId: '435'
+        clientOrderId: abc
+      summary: order cancellation
+    CancelledOrderExample:
+      value:
+        orderId: '7524'
+        clientOrderId: 123-456
+      summary: order cancellation
+    BasicOrderExample:
+      value:
+        orderId: '7524'
+        marketId: BTC-AUD
+        side: Bid
+        type: Limit
+        creationTime: '2019-08-30T11:08:21.956000Z'
+        price: '100.12'
+        amount: '1.034'
+        openAmount: '1.034'
+        status: Accepted
+      summary: basic order attributes
+  schemas:
+    CancelOrderResponse:
+      type: object
+      properties:
+        orderId: type:string
+        clientOrderId: type:string
+    ReplaceOrderRequest:
+      type: object
+      required:
+      - price
+      - amount
+      properties:
+        price:
+          description: null
+          type: string
+        amount:
+          description: null
+          type: string
+        clientOrderId:
+          description: optional. a unique order id speciifed by client app.
+          type: string
+    Order:
+      type: object
+      properties:
+        orderId:
+          type: string
+        marketId:
+          type: string
+        side:
+          type: string
+        type:
+          type: string
+        creationTime:
+          type: string
+        price:
+          type: string
+        amount:
+          type: string
+        openAmount:
+          type: string
+        status:
+          type: string
+        triggerPrice:
+          type: string
+        targetAmount:
+          type: string
+        timeInForce:
+          type: string
+        postOnly:
+          type: boolean
+        selfTrade:
+          type: string
+        errorMessage:
+          type: string
+          description: Indicates why the order failed after it was accepted. This attribute is null in most situations except for rare cases where the order is accepted at the point of entry but then rejected by the matching engine (e.g., due to insufficient funds).
+        clientOrderId:
+          type: string
+    PlaceOrderRequest:
+      type: object
+      required:
+      - marketId
+      - price
+      - amount
+      - type
+      - side
+      properties:
+        marketId:
+          description: specify a marketId e.g. BTC-AUD
+          type: string
+        price:
+          description: null
+          type: string
+        amount:
+          description: null
+          type: string
+        type:
+          $ref: '#/schemas/OrderType'
+        side:
+          $ref: '#/schemas/OrderSide'
+        triggerPrice:
+          description: this is mandatory if order type is Stop, Stop Limit or Take Profit
+          type: string
+        targetAmount:
+          description: specifiy target amount when a desired target outcome is required for order execution
+          type: string
+        timeInForce:
+          description: possible values are GTC (default option) , FOK and IOC
+          type: string
+        postOnly:
+          description: if this is a post-only order
+          type: boolean
+        selfTrade:
+          description: A or P
+          type: string
+        clientOrderId:
+          description: a unique order id speciifed by client app.
+          type: string
+x-tagGroups:
+- name: Order Matching
+  tags:
+  - order_status
+  - OrderTypes
+  - StopOrders
+  - ClientOrderId
+  - Timeinforce
+  - TargetAmount
+  - PostOnly
+  - SelfTrade
+  - market_status
+- name: APIs
+  tags:
+  - Market Data APIs
+  - Order Placement APIs
+  - Batch Order APIs
+  - Trade APIs
+  - Fund Management APIs
+  - Account APIs
+  - Report APIs
+  - Misc APIs
+  - ErrorCodes
+- name: WebSocket Feed
+  tags:
+  - WS_Overview
+  - WS_Public_Events
+  - WS_Private_Events
+- name: FIX API
+  tags:
+  - fix_introduction
+  - fix_order_entry
+  - fix_drop_copy
+  - fix_market_data
+  - fix_messages
+x-provenance:
+  method: searched
+  source: https://docs.btcmarkets.net/doc/openapi/index.yaml
+  generated: '2026-10-13'
+  note: Bundled from the provider-published multi-file OpenAPI (index.yaml, path/orders.yaml, components/index.yaml, info/index.yaml); verbatim sources in openapi/source/. Only external file $refs were inlined.

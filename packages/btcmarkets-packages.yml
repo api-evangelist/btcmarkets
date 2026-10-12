@@ -1,0 +1,141 @@
+generated: '2026-10-13'
+method: probed
+generator: harvest-packages.py
+source: registry metadata endpoints (registry.npmjs.org, pypi.org, rubygems.org, api.nuget.org, packagist.org, crates.io) ; github.com/BTCMarkets
+ownership_rule: 'official: true only when the registry metadata (homepage, repository, author, URLs) names the provider''s domain (btcmarkets.net,
+  security/btcmarkets-domain-security.yml, security/btcmarkets-trust-center.yml, security/btcmarkets-vulnerability-disclosure.yml) or its accepted
+  GitHub org (BTCMarkets).'
+packages:
+- name: btc-markets
+  registry: npm
+  url: https://www.npmjs.com/package/btc-markets
+  language: JavaScript
+  official: true
+  version: 1.1.1
+  published: '2019-07-12'
+  evidence: metadata names btcmarkets.net
+- name: api-v3-client-rust
+  registry: github
+  url: https://github.com/BTCMarkets/api-v3-client-rust
+  language: Rust
+  official: true
+  version: null
+  published: '2026-04-23'
+  source_repo: https://github.com/BTCMarkets/api-v3-client-rust
+  evidence: repository in github.com/BTCMarkets, whose profile names the provider's domain
+- name: api-v3-client-dotnet
+  registry: github
+  url: https://github.com/BTCMarkets/api-v3-client-dotnet
+  language: C#
+  official: true
+  version: null
+  published: '2026-01-05'
+  source_repo: https://github.com/BTCMarkets/api-v3-client-dotnet
+  evidence: repository in github.com/BTCMarkets, whose profile names the provider's domain
+- name: api-v3-client-python
+  registry: github
+  url: https://github.com/BTCMarkets/api-v3-client-python
+  language: Python
+  official: true
+  version: null
+  published: '2024-05-30'
+  source_repo: https://github.com/BTCMarkets/api-v3-client-python
+  evidence: repository in github.com/BTCMarkets, whose profile names the provider's domain
+- name: API
+  registry: github
+  url: https://github.com/BTCMarkets/API
+  language: ''
+  official: true
+  version: null
+  published: '2021-12-20'
+  source_repo: https://github.com/BTCMarkets/API
+  evidence: repository in github.com/BTCMarkets, whose profile names the provider's domain
+- name: api-client-node
+  registry: github
+  url: https://github.com/BTCMarkets/api-client-node
+  language: JavaScript
+  official: true
+  version: null
+  published: '2021-05-02'
+  source_repo: https://github.com/BTCMarkets/api-client-node
+  evidence: repository in github.com/BTCMarkets, whose profile names the provider's domain
+- name: api-v3-client-java
+  registry: github
+  url: https://github.com/BTCMarkets/api-v3-client-java
+  language: Java
+  official: true
+  version: null
+  published: '2020-02-16'
+  source_repo: https://github.com/BTCMarkets/api-v3-client-java
+  evidence: repository in github.com/BTCMarkets, whose profile names the provider's domain
+- name: api-v3-client-go
+  registry: github
+  url: https://github.com/BTCMarkets/api-v3-client-go
+  language: Go
+  official: true
+  version: null
+  published: '2019-10-15'
+  source_repo: https://github.com/BTCMarkets/api-v3-client-go
+  evidence: repository in github.com/BTCMarkets, whose profile names the provider's domain
+- name: api-v3-client-swift
+  registry: github
+  url: https://github.com/BTCMarkets/api-v3-client-swift
+  language: Swift
+  official: true
+  version: null
+  published: '2019-10-14'
+  source_repo: https://github.com/BTCMarkets/api-v3-client-swift
+  evidence: repository in github.com/BTCMarkets, whose profile names the provider's domain
+- name: api-v3-client-node
+  registry: github
+  url: https://github.com/BTCMarkets/api-v3-client-node
+  language: JavaScript
+  official: true
+  version: null
+  published: '2019-09-04'
+  source_repo: https://github.com/BTCMarkets/api-v3-client-node
+  evidence: repository in github.com/BTCMarkets, whose profile names the provider's domain
+- name: api-client-php
+  registry: github
+  url: https://github.com/BTCMarkets/api-client-php
+  language: PHP
+  official: true
+  version: null
+  published: '2019-07-24'
+  source_repo: https://github.com/BTCMarkets/api-client-php
+  evidence: repository in github.com/BTCMarkets, whose profile names the provider's domain
+- name: api-client-python3
+  registry: github
+  url: https://github.com/BTCMarkets/api-client-python3
+  language: Python
+  official: true
+  version: null
+  published: '2019-07-24'
+  source_repo: https://github.com/BTCMarkets/api-client-python3
+  evidence: repository in github.com/BTCMarkets, whose profile names the provider's domain
+- name: api-client-python
+  registry: github
+  url: https://github.com/BTCMarkets/api-client-python
+  language: Python
+  official: true
+  version: null
+  published: '2018-06-30'
+  source_repo: https://github.com/BTCMarkets/api-client-python
+  evidence: repository in github.com/BTCMarkets, whose profile names the provider's domain
+- name: sample-api-client-java
+  registry: github
+  url: https://github.com/BTCMarkets/sample-api-client-java
+  language: Java
+  official: true
+  version: null
+  published: '2013-09-11'
+  source_repo: https://github.com/BTCMarkets/sample-api-client-java
+  evidence: repository in github.com/BTCMarkets, whose profile names the provider's domain
+- name: btcmarkets
+  registry: pypi
+  url: https://pypi.org/project/btcmarkets/
+  language: Python
+  official: false
+  version: 0.0.7
+  published: '2017-12-13'
+  evidence: 'name match only: the metadata names neither the provider''s domain nor its GitHub org'

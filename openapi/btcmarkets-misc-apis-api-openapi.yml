@@ -1,0 +1,82 @@
+openapi: 3.2.0
+info:
+  version: 3.0.0
+  title: BTC Markets Misc APIs API
+  contact:
+    name: API Support
+    email: support@btcmarkets.net
+    url: http://btcmarkets.net
+  x-logo:
+    url: /doc/images/small-logo.png
+    altText: BtcMarkets logo
+  description: '# Introduction
+
+    Welcome to BTC Markets API v3.'
+servers:
+- url: https://api.btcmarkets.net
+  description: Production
+tags:
+- name: Misc APIs
+paths:
+  /v3/time:
+    get:
+      tags:
+      - Misc APIs
+      summary: Get Server Time
+      description: Returns the server time.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                basic:
+                  $ref: '#/components/examples/TimeExample'
+      operationId: getV3Time
+      x-operation-id-source: derived
+components:
+  examples:
+    TimeExample:
+      value:
+        timestamp: '2019-09-01T18:34:27.045000Z'
+      summary: server time
+x-tagGroups:
+- name: Order Matching
+  tags:
+  - order_status
+  - OrderTypes
+  - StopOrders
+  - ClientOrderId
+  - Timeinforce
+  - TargetAmount
+  - PostOnly
+  - SelfTrade
+  - market_status
+- name: APIs
+  tags:
+  - Market Data APIs
+  - Order Placement APIs
+  - Batch Order APIs
+  - Trade APIs
+  - Fund Management APIs
+  - Account APIs
+  - Report APIs
+  - Misc APIs
+  - ErrorCodes
+- name: WebSocket Feed
+  tags:
+  - WS_Overview
+  - WS_Public_Events
+  - WS_Private_Events
+- name: FIX API
+  tags:
+  - fix_introduction
+  - fix_order_entry
+  - fix_drop_copy
+  - fix_market_data
+  - fix_messages
+x-provenance:
+  method: searched
+  source: https://docs.btcmarkets.net/doc/openapi/index.yaml
+  generated: '2026-10-13'
+  note: Bundled from the provider-published multi-file OpenAPI (index.yaml, path/orders.yaml, components/index.yaml, info/index.yaml); verbatim sources in openapi/source/. Only external file $refs were inlined.

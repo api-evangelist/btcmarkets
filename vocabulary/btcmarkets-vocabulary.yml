@@ -1,0 +1,205 @@
+generated: '2026-10-13'
+method: derived
+generator: derive-vocabulary.py
+source: openapi/btcmarkets-openapi.yml
+vocabulary:
+  name: BTC Markets Domain Vocabulary
+  description: 'Terms declared by BTC Markets''s own API contract: its resource groups, objects and enumerations, with the contract''s definitions.
+    Derived, not authored.'
+  version: '2026-10-13'
+  terms:
+  - term: order_status
+    definition: 'An order can have any of the following statuses - `Accepted`: The order has been accepted by the trading platform. - `Placed`:
+      The order has been submitted to the orderbook and appropriate funds are locked. - `Partially Matched`: The order has been partially matched.
+      - `Fully Matched`: The order has been fully matched. - `Cancelled`: The order has been canceled and is no longer in the orderbook. -'
+    tags:
+    - Resource Group
+    source: openapi/btcmarkets-openapi.yml
+  - term: OrderTypes
+    definition: 'The following order types are supported: - Limit - Market - Stop Limit - Stop - Take Profit'
+    tags:
+    - Resource Group
+    source: openapi/btcmarkets-openapi.yml
+  - term: StopOrders
+    definition: In general, stop orders stay in the orderbook and are only activated once the trigger price of the order is reached by the market.
+      Depending on the type, upon triggering the order will be placed in the orderbook as a Limit or Market order that will then execute as normal.
+      - For Stop Limit orders, the order type attribute will be "Stop Limit" and an additional field triggerPrice must be supplied. -
+    tags:
+    - Resource Group
+    source: openapi/btcmarkets-openapi.yml
+  - term: ClientOrderId
+    definition: '`clientOrderId` is an optional parameter that can be set by the client applications to track orders using their internal order
+      management system. `clientOrderId` is a string field between 1 to 64 with the following characters allowed: `a-z, A-Z, 0-9, -` allowing
+      standard formats like UUID. We have tried to distinguish between the exchange `orderId` and `clientOrderId` returning both attributes whi'
+    tags:
+    - Resource Group
+    source: openapi/btcmarkets-openapi.yml
+  - term: Timeinforce
+    definition: '`timeInForce` option allows traders to control order lifetime with the following possible values. * `GTC`: good till canceled
+      (the default value if not specified) * `IOC`: immediate or cancel. The order should be canceled immediately after being placed in the orderbook.
+      The order may be matched against existing orders as part of the initial placement in the orderbook, but any volume that is is lef'
+    tags:
+    - Resource Group
+    source: openapi/btcmarkets-openapi.yml
+  - term: TargetAmount
+    definition: This is an optional parameter that allows traders to instruct the system to `sell` (or `buy`) as many numbers of `instrument`
+      as possible so that the `targetAmount` is reached. For example- as a trader, I'd like to receive $100 (the target amount) by selling as
+      many of my `XRPs` (the actual volume is determined by the system at the time of placing the order) as I can. The system then makes the bes
+    tags:
+    - Resource Group
+    source: openapi/btcmarkets-openapi.yml
+  - term: PostOnly
+    definition: '`postOnly` is an optional boolean flag with true/false value. The default is false for all new orders. When this option is set
+      to `true`, it means the order should only be posted to the orderbook if it does not result in any trades at the time of placement. If any
+      part of the order results in trade execution, the order will be canceled. Please note: once the order is accepted as part of the initia'
+    tags:
+    - Resource Group
+    source: openapi/btcmarkets-openapi.yml
+  - term: SelfTrade
+    definition: The `selfTrade` option allows traders to control the possibility of their own orders executing against each other. For instance,
+      if you already have an order in the orderbook to buy 100 `XRP` for the price of 0.50 and then place a new order to sell 100 `XRP` with the
+      same price of 0.50, the new sell order will be canceled immediately and won't be submitted to the orderbook. The existing order (the
+    tags:
+    - Resource Group
+    source: openapi/btcmarkets-openapi.yml
+  - term: market_status
+    definition: Our trading engine uses a number of statuses to assist API clients as they manage their trading business logic. These statuses
+      also open orders during scheduled maintenance and unforeseen service downtime. The market status list covers whether the market is operational,
+      the type of orders that can be placed, whether open orders can be cancelled, and whether any order matching can occur. Market Sta
+    tags:
+    - Resource Group
+    source: openapi/btcmarkets-openapi.yml
+  - term: ErrorCodes
+    definition: 'Below covers all the error codes returned by API. | Error Code | Description | Category |------------|:--------------------------------|:------------------|
+      | InvalidPrice | invalid order price | orders | | InvalidAmount | invalid order amount | orders | | InvalidTriggerPrice | invalid trigger
+      price | orders | | InvalidTargetAmount | | orders | | InvalidOrderSide | | orders | | InvalidOrderType | '
+    tags:
+    - Resource Group
+    source: openapi/btcmarkets-openapi.yml
+  - term: WS_Overview
+    definition: 'BTC Markets'' WebSocket feed provides real-time market data covering orderbook updates, order life cycle, and trades. In order
+      to start receiving real-time messages, a WebSocket connection needs to be made. This should be followed by a message to subscribe to the
+      channels and marketIds you are interested in. ### Endpoint The endpoint for WebSocket v2 is: `wss://socket.btcmarkets.net/v2`. ### Channe'
+    tags:
+    - Resource Group
+    source: openapi/btcmarkets-openapi.yml
+  - term: WS_Public_Events
+    definition: '## Tick Event The `tick` event is published every time `lastPrice`, `bestBid`, or `bestAsk` is updated for a market which is
+      the result of orderbook changes or trade matches. Sample event: ```javscript { marketId: ''XRP-AUD'', timestamp: ''2021-12-01T05:47:35.185Z'',
+      bestBid: ''1.4028'', bestAsk: ''1.4047'', lastPrice: ''1.4031'', volume24h: ''1055000.9042866'', volumeQte24h: ''1480271.76880452'', price24h:
+      ''0.'
+    tags:
+    - Resource Group
+    source: openapi/btcmarkets-openapi.yml
+  - term: WS_Private_Events
+    definition: '## Authenticated Events Receiving events about the life cycle of your orders requires sending authentication information when
+      subscribing to events. The authentication is similar to public trading API authentication (using your API key and secret to sign the message)
+      when subscribing via WebSocket. Below is sample `javascript` code with authentication: ```javascript const crypto = require(''crypto'''
+    tags:
+    - Resource Group
+    source: openapi/btcmarkets-openapi.yml
+  - term: fix_introduction
+    definition: '## Introduction FIX (Financial Information eXchange) is a standard message protocol used to interact with trading systems for
+      placing and canceling orders. The FIX interface is based on the FIX 4.4 specification. Please contact the BTC Markets support team and complete
+      the account verification process to gain secure access to the FIX interface. ## FIX Interfaces BTC Markets offers the existing FIX'
+    tags:
+    - Resource Group
+    source: openapi/btcmarkets-openapi.yml
+  - term: fix_messages
+    definition: '## Overview All messages have an attribute called `MsgType` which represents the type of message to be communicated with the
+      FIX engine. ## Messages From Client to Server | Message Type | Identifier | |-----------------------------|:----------| | Logon | A | |
+      Heartbeat | 0 | | Test Request | 1 | | Logout | 5 | | New Single Order | D | | Cancel Order | F | | Order Status | H | | Order Mass Cancel '
+    tags:
+    - Resource Group
+    source: openapi/btcmarkets-openapi.yml
+  - term: fix_order_entry
+    definition: '## Overview FIX Order Entry is a new, low-latency order-entry interface in the BTC Markets FIX offering. It is built for clients
+      that place and cancel orders over FIX and want the lowest possible round-trip time between sending a request and receiving its Execution
+      Report. FIX Order Entry uses the **same FIX 4.4 specification, messages and data dictionary** as the existing FIX order-entry interfac'
+    tags:
+    - Resource Group
+    source: openapi/btcmarkets-openapi.yml
+  - term: fix_drop_copy
+    definition: '## Overview FIX Drop Copy is a new, receive-only addition to the BTC Markets FIX offering. It streams a real-time copy of an
+      account''s order and trade activity over a FIX session, so you can monitor fills, cancellations and order state without placing any orders
+      yourself. Drop Copy uses the **same FIX 4.4 specification, message formats and data dictionary** as the FIX order-entry interfaces, docum'
+    tags:
+    - Resource Group
+    source: openapi/btcmarkets-openapi.yml
+  - term: fix_market_data
+    definition: '## Overview FIX Market Data is a new, subscription-based addition to the BTC Markets FIX offering. It streams real-time order
+      book data for the markets you subscribe to over a FIX session, so you can maintain a live local copy of the book without polling the REST
+      API. Like Drop Copy, it is receive-oriented: after Logon the only application message a client sends is the subscription request. Market'
+    tags:
+    - Resource Group
+    source: openapi/btcmarkets-openapi.yml
+  - term: OrderStatus
+    definition: 'Enumeration declared by the contract with values: Accepted, Placed, Partially Matched, Fully Matched, Cancelled, Partially Cancelled,
+      Failed.'
+    tags:
+    - Enumeration
+    source: openapi/btcmarkets-openapi.yml#/components/schemas/OrderStatus
+  - term: OrderType
+    definition: type of the order
+    tags:
+    - Enumeration
+    source: openapi/btcmarkets-openapi.yml#/components/schemas/OrderType
+  - term: OrderSide
+    definition: side of the order
+    tags:
+    - Enumeration
+    source: openapi/btcmarkets-openapi.yml#/components/schemas/OrderSide
+  - term: PlaceOrderRequest
+    definition: 'Object declared by the contract with fields: marketId, price, amount, type, side, triggerPrice, targetAmount, timeInForce, postOnly,
+      selfTrade, clientOrderId.'
+    tags:
+    - Object
+    source: openapi/btcmarkets-openapi.yml#/components/schemas/PlaceOrderRequest
+  - term: ReplaceOrderRequest
+    definition: 'Object declared by the contract with fields: price, amount, clientOrderId.'
+    tags:
+    - Object
+    source: openapi/btcmarkets-openapi.yml#/components/schemas/ReplaceOrderRequest
+  - term: CancelOrderRequest
+    definition: 'Object declared by the contract with fields: orderId, clientOrderId.'
+    tags:
+    - Object
+    source: openapi/btcmarkets-openapi.yml#/components/schemas/CancelOrderRequest
+  - term: BatchOrderRequest
+    definition: 'Object declared by the contract with fields: placeOrder, cancelOrder.'
+    tags:
+    - Object
+    source: openapi/btcmarkets-openapi.yml#/components/schemas/BatchOrderRequest
+  - term: BeneficiaryDetail
+    definition: Beneficiary information for the withdrawal recipient, required to comply with AUSTRAC's travel rule obligations. Currently optional,
+      but will become mandatory from `2026-06-15 12:00 AEST`. Once mandatory, requests without this attribute will fail with the error code `InvalidTransferBeneficiaryDetail`.
+    tags:
+    - Object
+    source: openapi/btcmarkets-openapi.yml#/components/schemas/BeneficiaryDetail
+  - term: CreateWithdrawRequest
+    definition: 'Object declared by the contract with fields: assetName, amount, toAddress, accountName, accountNumber, bsbNumber, bankName, paymentDescription,
+      clientTransferId, beneficiaryDetail.'
+    tags:
+    - Object
+    source: openapi/btcmarkets-openapi.yml#/components/schemas/CreateWithdrawRequest
+  - term: Order
+    definition: 'Object declared by the contract with fields: orderId, marketId, side, type, creationTime, price, amount, openAmount, status,
+      triggerPrice, targetAmount, timeInForce. (4 more)'
+    tags:
+    - Object
+    source: openapi/btcmarkets-openapi.yml#/components/schemas/Order
+  - term: CancelOrders
+    definition: 'Object declared by the contract with fields: marketId.'
+    tags:
+    - Object
+    source: openapi/btcmarkets-openapi.yml#/components/schemas/CancelOrders
+  - term: CancelOrderResponse
+    definition: 'Object declared by the contract with fields: orderId, clientOrderId.'
+    tags:
+    - Object
+    source: openapi/btcmarkets-openapi.yml#/components/schemas/CancelOrderResponse
+  - term: CreateReportRequest
+    definition: 'Object declared by the contract with fields: type, format.'
+    tags:
+    - Object
+    source: openapi/btcmarkets-openapi.yml#/components/schemas/CreateReportRequest

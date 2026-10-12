@@ -1,0 +1,367 @@
+openapi: 3.2.0
+info:
+  version: 3.0.0
+  title: BTC Markets Batch Order APIs API
+  contact:
+    name: API Support
+    email: support@btcmarkets.net
+    url: http://btcmarkets.net
+  x-logo:
+    url: /doc/images/small-logo.png
+    altText: BtcMarkets logo
+  description: '# Introduction
+
+    Welcome to BTC Markets API v3.'
+servers:
+- url: https://api.btcmarkets.net
+  description: Production
+tags:
+- name: Batch Order APIs
+paths:
+  /v3/batchorders:
+    post:
+      tags:
+      - Batch Order APIs
+      summary: Place and Cancel Orders
+      description: 'Use this API to place multiple new orders or cancel existing ones via a single request. The request for batch processing is an array of items, and each item contains instructions for an order placement and a cancellation.
+
+        There are restrictions on the number of items in a batch (currently set to 10), so a batch can contain up to four items in any form that is needed. For instance, it can contain four placements (hence four items in the array), four cancellations, or an array of two items with two order placements and two cancellations.
+
+
+        Batch operations are only containers for multiple requests, so each individual request is handled separately from the rest of the requests in the batch.
+
+
+        Once all items in the batch are processed, a single response containing orders added and orders canceled is returned along with an attribute called `unprocessedRequests` that is an array of any item in the batch that can''t be processed.
+
+
+        One major difference between using batch requests and individual requests is the approach to error handling. In the case of using individual requests, if the request is invalid (e.g. invalid price), then an HTTP 400 error is returned.
+
+        However, when using batch requests (even with a single item) you will receive an HTTP code of 200 and you should parse the `unprocessedRequests` inside the response body to determine if there are any errors processing individual requests.
+
+
+        There are cases where the entire batch request is considered invalid and an HTTP error `400` is returned (e.g., batch size exceeds the limit). Therefore, when handling batch requests, your client needs to handle HTTP status codes as well as error messages inside the response body.
+
+
+        Another difference is that you must provide `clientOrderId` when placing orders in batch. This allows items inside a batch request to be tracked and processed accurately.
+
+        When canceling orders, you can either use `orderId` or `clientOrderId` within the request. `clientOrderId` is only mandatory for creating new orders.
+
+
+        A `requestId` that appears inside the `unprocessedRequests` represents whatever ID was used to identify an order (e.g., clientOrderId or orderId).
+
+
+        One sample use case of batch processing is simulating the update order in a single HTTP call that is canceling an existing order and then creating a new order. In order to achieve this outcome, use the following request sample:
+
+
+        ``` json
+
+        [
+
+        {
+
+        "cancelOrder": {
+
+        "clientOrderId": "27"
+
+        }
+
+        },
+
+        {
+
+        "placeOrder": {
+
+        "marketId": "XRP-AUD",
+
+        "side": "Bid",
+
+        "type": "Limit",
+
+        "price": "0.22",
+
+        "amount": "0.26",
+
+        "clientOrderId": "28"
+
+        }
+
+        }
+
+        ]
+
+        ```
+
+        In the above sample, the existing order with ID `27` is canceled and a new order with ID 28 will be created.
+
+
+        You can still take advantage of `/3/batchorders{ids}` in order to cancel orders and use this API for placing orders only.'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+              - description: Place new orders or cancel existing ones
+                title: Batch order request
+              - $ref: '#/components/schemas/BatchOrderRequests'
+            examples:
+              bid:
+                $ref: '#/components/examples/BatchOrderRequestExample'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+              examples:
+                basic:
+                  $ref: '#/components/examples/BatchOrderProcessingWithErrorExample'
+                allErrors:
+                  $ref: '#/components/examples/BatchOrderProcessingAllErrorsExample'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              examples:
+                missingParam:
+                  summary: missing clientOrderId
+                  value:
+                    code: InvalidClientOrderId
+                    message: a unique client order id is required for batch order placement
+      operationId: postV3Batchorders
+      x-operation-id-source: derived
+  /v3/batchorders/{ids}:
+    get:
+      tags:
+      - Batch Order APIs
+      operationId: getOrderByIds
+      summary: Get Orders by ID
+      description: 'Retrieves a batch of orders by using either the exchange `orderId` or `clientOrderId`.
+
+        You can specify a comma separated list of IDs with `/v3/batchorders/abc,dbc,3a,4`.'
+      parameters:
+      - name: ids
+        in: path
+        required: true
+        schema:
+          type: string
+          description: comma delimited list of ids
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                basic:
+                  $ref: '#/components/examples/BatchOrderGetExample'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              examples:
+                missingParam:
+                  summary: missing clientOrderId
+                  value:
+                    code: InvalidBatchRequest
+                    message: duplicate items found in the batch request
+    delete:
+      tags:
+      - Batch Order APIs
+      summary: Cancel Orders by ID
+      description: This API can be used to cancel a list of orders specified by ID in a single request e.g. `/v3/batchorders/6,7,1`.
+      parameters:
+      - name: ids
+        in: path
+        required: true
+        schema:
+          type: string
+          description: comma delimited list of ids
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                basic:
+                  $ref: '#/components/examples/BatchOrderCancelExample'
+      operationId: deleteV3BatchordersByIds
+      x-operation-id-source: derived
+components:
+  examples:
+    BatchOrderRequestExample:
+      value:
+      - placeOrder:
+          marketId: BTC-AUD
+          side: Ask
+          type: Limit
+          price: '112'
+          amount: '1.03'
+          clientOrderId: '44'
+        cancelOrder:
+          clientOrderId: '43'
+      - placeOrder:
+          marketId: BTC-AUD
+          side: Ask1
+          type: Limit
+          price: '112'
+          amount: '1.03'
+          clientOrderId: '45'
+        cancelOrder:
+          orderId: '3467439'
+      summary: basic order attributes
+    BatchOrderCancelExample:
+      value:
+        cancelOrders:
+        - orderId: '414186'
+          clientOrderId: '6'
+        - orderId: '414192'
+          clientOrderId: '7'
+        unprocessedRequests:
+        - code: OrderAlreadyCancelled
+          message: order is already cancelled.
+          requestId: '1'
+      summary: basic order attributes
+    BatchOrderGetExample:
+      value:
+        orders:
+        - orderId: '751843'
+          marketId: BTC-AUD
+          side: Ask
+          type: Limit
+          creationTime: '2019-08-29T13:12:33.576000Z'
+          price: '148'
+          amount: '1.1'
+          openAmount: '1.1'
+          status: Cancelled
+          clientOrderId: '2'
+        unprocessedRequests:
+        - code: OrderNotFound
+          message: order was not found
+          requestId: abcdefgh
+        - code: OrderNotFound
+          message: order was not found
+          requestId: '12'
+      summary: basic order attributes
+    BatchOrderProcessingAllErrorsExample:
+      value:
+        placeOrders: []
+        cancelOrders: []
+        unprocessedRequests:
+        - code: DuplicateClientOrderId
+          message: duplicate client order id was found.
+          requestId: '4'
+        - code: OrderAlreadyCancelled
+          message: order is already cancelled.
+          requestId: '1'
+        - code: InsufficientFund
+          message: Insufficient funds.
+          requestId: '5'
+        - code: OrderNotFound
+          message: order was not found
+          requestId: '39'
+      summary: all errors
+    BatchOrderProcessingWithErrorExample:
+      value:
+        placeOrders:
+        - orderId: '752132'
+          marketId: BTC-AUD
+          side: Ask
+          type: Limit
+          creationTime: '2019-09-01T17:38:17.404000Z'
+          price: '112'
+          amount: '1.03'
+          openAmount: '1.03'
+          status: Accepted
+          clientOrderId: '44'
+        cancelOrders:
+        - orderId: '752129'
+          clientOrderId: '43'
+        unprocessedRequests:
+        - code: InvalidOrderSide
+          message: invalid order side
+          requestId: '45'
+        - code: OrderNotFound
+          message: order was not found
+          requestId: '39'
+      summary: basic order attributes
+  schemas:
+    Order:
+      type: object
+      properties:
+        orderId:
+          type: string
+        marketId:
+          type: string
+        side:
+          type: string
+        type:
+          type: string
+        creationTime:
+          type: string
+        price:
+          type: string
+        amount:
+          type: string
+        openAmount:
+          type: string
+        status:
+          type: string
+        triggerPrice:
+          type: string
+        targetAmount:
+          type: string
+        timeInForce:
+          type: string
+        postOnly:
+          type: boolean
+        selfTrade:
+          type: string
+        errorMessage:
+          type: string
+          description: Indicates why the order failed after it was accepted. This attribute is null in most situations except for rare cases where the order is accepted at the point of entry but then rejected by the matching engine (e.g., due to insufficient funds).
+        clientOrderId:
+          type: string
+    BatchOrderRequests:
+      type: array
+      items:
+        $ref: '#/schemas/BatchOrderRequest'
+x-tagGroups:
+- name: Order Matching
+  tags:
+  - order_status
+  - OrderTypes
+  - StopOrders
+  - ClientOrderId
+  - Timeinforce
+  - TargetAmount
+  - PostOnly
+  - SelfTrade
+  - market_status
+- name: APIs
+  tags:
+  - Market Data APIs
+  - Order Placement APIs
+  - Batch Order APIs
+  - Trade APIs
+  - Fund Management APIs
+  - Account APIs
+  - Report APIs
+  - Misc APIs
+  - ErrorCodes
+- name: WebSocket Feed
+  tags:
+  - WS_Overview
+  - WS_Public_Events
+  - WS_Private_Events
+- name: FIX API
+  tags:
+  - fix_introduction
+  - fix_order_entry
+  - fix_drop_copy
+  - fix_market_data
+  - fix_messages
+x-provenance:
+  method: searched
+  source: https://docs.btcmarkets.net/doc/openapi/index.yaml
+  generated: '2026-10-13'
+  note: Bundled from the provider-published multi-file OpenAPI (index.yaml, path/orders.yaml, components/index.yaml, info/index.yaml); verbatim sources in openapi/source/. Only external file $refs were inlined.

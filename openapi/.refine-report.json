@@ -1,0 +1,39 @@
+{
+  "provider": "btcmarkets",
+  "sources": [
+    "btcmarkets-openapi.yml"
+  ],
+  "outputs": [
+    "btcmarkets-account-apis-api-openapi.yml",
+    "btcmarkets-batch-order-apis-api-openapi.yml",
+    "btcmarkets-fund-management-apis-api-openapi.yml",
+    "btcmarkets-market-data-apis-api-openapi.yml",
+    "btcmarkets-misc-apis-api-openapi.yml",
+    "btcmarkets-order-placement-apis-api-openapi.yml",
+    "btcmarkets-report-apis-api-openapi.yml",
+    "btcmarkets-trade-apis-api-openapi.yml"
+  ],
+  "archived": [
+    "archived openapi/btcmarkets-openapi.yml"
+  ],
+  "errors": [
+    "btcmarkets-openapi.yml: dangling $ref: #/schemas/BatchOrderRequest",
+    "btcmarkets-openapi.yml: dangling $ref: #/schemas/BeneficiaryDetail",
+    "btcmarkets-openapi.yml: dangling $ref: #/schemas/OrderSide",
+    "btcmarkets-openapi.yml: dangling $ref: #/schemas/OrderType"
+  ],
+  "warnings": [],
+  "notes": [
+    "btcmarkets-openapi.yml: upgraded openapi 3.0.0 -> OpenAPI 3.2.0",
+    "btcmarkets-openapi.yml: declared missing tag: Account APIs",
+    "btcmarkets-openapi.yml: declared missing tag: Batch Order APIs",
+    "btcmarkets-openapi.yml: declared missing tag: Fund Management APIs",
+    "btcmarkets-openapi.yml: declared missing tag: Market Data APIs",
+    "btcmarkets-openapi.yml: declared missing tag: Misc APIs",
+    "btcmarkets-openapi.yml: declared missing tag: Order Placement APIs",
+    "btcmarkets-openapi.yml: declared missing tag: Report APIs",
+    "btcmarkets-openapi.yml: declared missing tag: Trade APIs",
+    "apis.yml register: written (+8 apis, 8 total)"
+  ],
+  "skipped": []
+}

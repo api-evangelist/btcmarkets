@@ -1,0 +1,18 @@
+generated: '2026-10-13'
+method: none
+source:
+- https://zapier.com/apps/btcmarkets/integrations
+- https://zapier.com/apps/btc-markets/integrations
+- https://n8n.io/integrations/btcmarkets/
+- https://composio.dev/toolkits/btcmarkets
+- https://monid.ai/tools/btcmarkets
+checked:
+- https://composio.dev/toolkits/btcmarkets
+- https://monid.ai/tools/btcmarkets
+- https://n8n.io/integrations/btcmarkets/
+- https://zapier.com/apps/btc-markets/integrations
+- https://zapier.com/apps/btcmarkets/integrations
+summary: null
+marketplace_apps: []
+edges: []
+templates: []

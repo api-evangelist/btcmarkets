@@ -1,0 +1,427 @@
+schemas:
+  OrderStatus:
+    type: string
+    enum: [Accepted, Placed, Partially Matched, Fully Matched, Cancelled, Partially Cancelled, Failed]
+
+  OrderType:
+      type: string
+      enum: [Limit, Market, Stop Limit, Stop, Take Profit]
+      description: type of the order
+
+  OrderSide:
+      type: string
+      enum: [Bid, Ask]
+      description: side of the order
+
+  PlaceOrderRequest:
+      type: object
+      required:
+          - marketId
+          - price
+          - amount
+          - type
+          - side
+      properties:
+          marketId:
+              description: specify a marketId e.g. BTC-AUD
+              type: string
+          price:
+              description:
+              type: string
+          amount:
+              description:
+              type: string
+          type:
+              $ref: '#/schemas/OrderType'
+          side:
+              $ref: '#/schemas/OrderSide'
+          triggerPrice:
+              description: this is mandatory if order type is Stop, Stop Limit or Take Profit
+              type: string
+          targetAmount:
+              description: specifiy target amount when a desired target outcome is required for order execution
+              type: string
+          timeInForce:
+              description: possible values are GTC (default option) , FOK and IOC
+              type: string
+          postOnly:
+              description: if this is a post-only order
+              type: boolean
+          selfTrade:
+              description: A or P
+              type: string
+          clientOrderId:
+              description: a unique order id speciifed by client app.
+              type: string
+
+  ReplaceOrderRequest:
+      type: object
+      required:
+          - price
+          - amount
+      properties:
+          price:
+              description:
+              type: string
+          amount:
+              description:
+              type: string
+          clientOrderId:
+              description: optional. a unique order id speciifed by client app.
+              type: string
+
+  CancelOrderRequest:
+      type: object
+      properties:
+          orderId:
+              description: exchange generated order id
+              type: string
+          clientOrderId:
+              description: client generated order id
+              type: string
+
+  BatchOrderRequest:
+      type: object
+      properties:
+          placeOrder:
+              $ref: '#/schemas/PlaceOrderRequest'
+          cancelOrder:
+              $ref: '#/schemas/CancelOrderRequest'
+
+  BatchOrderRequests:
+      type: array
+      items:
+          $ref: '#/schemas/BatchOrderRequest'
+
+
+  BeneficiaryDetail:
+      type: object
+      description: |
+        Beneficiary information for the withdrawal recipient, required to comply with AUSTRAC's travel rule obligations.
+        Currently optional, but will become mandatory from `2026-06-15 12:00 AEST`. Once mandatory, requests without this attribute will fail with the error code `InvalidTransferBeneficiaryDetail`.
+      required:
+          - type
+      properties:
+          type:
+              type: string
+              enum: [Individual, Business]
+              description: type of the beneficiary. Determines which additional fields are required.
+          firstName:
+              type: string
+              description: beneficiary first name. Required when `type` is `Individual`.
+          lastName:
+              type: string
+              description: beneficiary last name. Required when `type` is `Individual`.
+          businessName:
+              type: string
+              description: legal business name. Required when `type` is `Business`.
+
+  CreateWithdrawRequest:
+      type: object
+      required:
+          - assetName
+          - amount
+      properties:
+          assetName:
+              type: string
+              description: name of the asset to withdraw e.g. `AUD` or `BTC`
+          amount:
+              type: string
+              description: amount to withdraw
+          toAddress:
+              type: string
+              description: destination address for crypto withdrawal. mandatory for crypto assets. For `XRP` withdrawals, you can optionally add destination tag to the address with `?dt=12345` e.g. `1EJKj147QmEzywLnLpuxSr6SoPr1p62VBX?dt=123456`
+          accountName:
+              type: string
+              description: optional for AUD withdrawal. when not specified default bank information is used
+          accountNumber:
+              type: string
+              description: optional for AUD withdrawal. when not specified default bank information is used
+          bsbNumber:
+              type: string
+              description: optional for AUD withdrawal. when not specified default bank information is used
+          bankName:
+              type: string
+              description: optional for AUD withdrawal. when not specified default bank information is used
+          paymentDescription:
+              type: string
+              description: optional for AUD withdrawal. Maximum character length of 18 and only alphanumeric
+          clientTransferId:
+              type: string
+              description: optional for withdrawal requests.
+          beneficiaryDetail:
+              $ref: '#/schemas/BeneficiaryDetail'
+
+  Order:
+      type: object
+      properties:
+          orderId:
+              type: string
+          marketId:
+              type: string
+          side:
+              type: string
+          type:
+              type: string
+          creationTime:
+              type: string
+          price:
+              type: string
+          amount:
+              type: string
+          openAmount:
+              type: string
+          status:
+              type: string
+          triggerPrice:
+              type: string
+          targetAmount:
+              type: string
+          timeInForce:
+              type: string
+          postOnly:
+              type: boolean
+          selfTrade:
+              type: string
+          errorMessage:
+              type: string
+              description: Indicates why the order failed after it was accepted. This attribute is null in most situations except for rare cases where the order is accepted at the point of entry but then rejected by the matching engine (e.g., due to insufficient funds).
+          clientOrderId:
+              type: string
+
+  CancelOrders:
+      type: object
+      properties:
+          marketId:
+              description: comma delimited list of marketIds. e.g. BTC-AUD,ETH-AUD
+
+  CancelOrderResponse:
+      type: object
+      properties:
+        orderId:
+            type:string
+        clientOrderId:
+            type:string
+
+  CreateReportRequest:
+      type: object
+      required:
+          - type
+          - format
+      properties:
+          type:
+              description: type of the report. the only accepted values are `TransactionReport` or `AccountTradingReport` at this stage.
+              type: string
+          format:
+              description: value can be  either `csv` or `json`
+              type: string
+
+requestBodies:
+  PlaceOrderRequest:
+      content:
+          application/json:
+              schema:
+                  allOf:
+                      - description: Place new order
+                        title: New order request
+                      - $ref: "#/schemas/PlaceOrderRequest"
+              examples:
+                  bid:
+                      summary: new order example
+                      value: {"marketId": "BTC-AUD", "price":"100.12","amount":"0.034","type":"Limit","side":"Bid"}
+
+  CancelOrders:
+      content:
+          application/json:
+              schema:
+                  allOf:
+                      - description: cancel all orders
+                        title: Cancel Orders
+                      - $ref: "#/schemas/CancelOrders"
+
+
+examples:
+    InvalidRequestExample:
+        value: {"code":"InvalidOrderSide","message":"invalid order side"}
+        summary: basic order attributes
+    BasicOrderExample:
+        value: {"orderId":"7524","marketId":"BTC-AUD","side":"Bid","type":"Limit","creationTime":"2019-08-30T11:08:21.956000Z","price":"100.12","amount":"1.034","openAmount":"1.034","status":"Accepted"}
+        summary: basic order attributes
+    AllOrderExample:
+        value: {"orderId":"7524","marketId":"BTC-AUD","side":"Bid","type":"Limit","creationTime":"2019-08-30T11:08:21.956000Z","price":"100.12","amount":"1.034","openAmount":"1.034","status":"Accepted","clientOrderId":"1234-5678", "timeInForce":"IOC","postOnly":false,"selfTrade":"P","triggerAmount":"105","targetAmount":"1000"}
+        summary: all order attributes
+
+    CancelledOrderExample:
+        value: {"orderId":"7524","clientOrderId":"123-456"}
+        summary: order cancellation
+
+    CancelledOrderExamples:
+        value: [{"orderId":"7524","clientOrderId":"123-456"}, {"orderId":"435","clientOrderId":"abc"}]
+        summary: order cancellation
+
+    BatchOrderGetExample:
+        value: {"orders":[{"orderId":"751843","marketId":"BTC-AUD","side":"Ask","type":"Limit","creationTime":"2019-08-29T13:12:33.576000Z","price":"148","amount":"1.1","openAmount":"1.1","status":"Cancelled","clientOrderId":"2"}],"unprocessedRequests":[{"code":"OrderNotFound","message":"order was not found","requestId":"abcdefgh"},{"code":"OrderNotFound","message":"order was not found","requestId":"12"}]}
+        summary: basic order attributes
+
+    BatchOrderProcessingWithErrorExample:
+        value: {"placeOrders":[{"orderId":"752132","marketId":"BTC-AUD","side":"Ask","type":"Limit","creationTime":"2019-09-01T17:38:17.404000Z","price":"112","amount":"1.03","openAmount":"1.03","status":"Accepted","clientOrderId":"44"}],"cancelOrders":[{"orderId":"752129","clientOrderId":"43"}],"unprocessedRequests":[{"code":"InvalidOrderSide","message":"invalid order side","requestId":"45"},{"code":"OrderNotFound","message":"order was not found","requestId":"39"}]}
+        summary: basic order attributes
+
+    BatchOrderProcessingAllErrorsExample:
+        value: {"placeOrders":[],"cancelOrders":[],"unprocessedRequests":[{"code":"DuplicateClientOrderId","message":"duplicate client order id was found.","requestId":"4"},{"code":"OrderAlreadyCancelled","message":"order is already cancelled.","requestId":"1"},{"code":"InsufficientFund","message":"Insufficient funds.","requestId":"5"},{"code":"OrderNotFound","message":"order was not found","requestId":"39"}]}
+        summary: all errors
+
+    BatchOrderCancelExample:
+        value: {"cancelOrders":[{"orderId":"414186","clientOrderId":"6"},{"orderId":"414192","clientOrderId":"7"}],"unprocessedRequests":[{"code":"OrderAlreadyCancelled","message":"order is already cancelled.","requestId":"1"}]}
+        summary: basic order attributes
+
+    BatchOrderRequestExample:
+        value: [{"placeOrder":{"marketId":"BTC-AUD","side":"Ask","type":"Limit","price":"112","amount":"1.03","clientOrderId":"44"},"cancelOrder":{"clientOrderId":"43"}},{"placeOrder":{"marketId":"BTC-AUD","side":"Ask1","type":"Limit","price":"112","amount":"1.03","clientOrderId":"45"},"cancelOrder":{"orderId":"3467439"}}]
+        summary: basic order attributes
+
+    TradeListExample:
+        value: [{"id":"36014819","marketId":"XRP-AUD","timestamp":"2019-06-25T16:01:02.977000Z","price":"0.67","amount":"1.50533262","side":"Ask","fee":"0.00857285","orderId":"3648306","liquidityType":"Taker", "clientOrderId":"48", "valueInQuoteAsset": "0.44508"},{"id":"3568960","marketId":"GNT-AUD","timestamp":"2019-06-20T08:44:04.488000Z","price":"0.1362","amount":"0.85","side":"Bid","fee":"0.00098404","orderId":"3543015","liquidityType":"Maker", "valueInQuoteAsset": "0.160235"}]
+        summary: trade list
+
+    MarketTickerExample:
+        value: {"marketId":"BAT-AUD","bestBid":"0.2612","bestAsk":"0.2677","lastPrice":"0.2652","volume24h":"6392.34930418","volumeQte24h":"1.39","price24h":"130","pricePct24h":"0.002","low24h":"0.2621","high24h":"0.2708","timestamp":"2019-09-01T10:35:04.940000Z"}
+        summary: market ticker
+
+    MarketTickerListExample:
+        value: [{"marketId":"BTC-AUD","bestBid":"9000","bestAsk":"9900","lastPrice":"8500","volume24h":"1444.44","volumeQte24h":"0.523","price24h":"130","pricePct24h":"0.002","low24h":"12","high24h":"50000","timestamp":"2019-07-31T21:32:08.659000Z"},{"marketId":"LTC-AUD","bestBid":"99.12","bestAsk":"101.14","lastPrice":"100","volume24h":"1199.8","volumeQte24h":"1.09","price24h":"10","pricePct24h":"0.001","low24h":"100","high24h":"120","timestamp":"2019-05-02T15:22:51.770000Z"}]
+        summary: market ticker
+
+    MarketTradesExample:
+        value: [{"id":"4107372347","price":"0.265","amount":"11.25","timestamp":"2019-09-02T12:49:42.874000Z", "side":"Ask"},{"id":"4107297908","price":"0.265","amount":"250","timestamp":"2019-09-02T12:15:29.570000Z", "side": "Bid"}]
+        summary: market trades
+
+    MarketOrderbookL1Example:
+        value: {"marketId":"BAT-AUD","snapshotId":1567334110144000,"asks":[["0.2677","5665.85"],["0.2681","52355"],["0.271","1316"],["0.2782","2500"]],"bids":[["0.2612","2.93273959"],["0.2611","17847.844"]]}
+        summary: market orderbook level 1
+
+    MarketOrderbookL1ListExample:
+        value: [{"marketId":"BAT-AUD","snapshotId":1567334110144000,"asks":[["0.2677","5665.85"],["0.2681","52355"],["0.271","1316"],["0.2782","2500"]],"bids":[["0.2612","2.93273959"],["0.2611","17847.844"]]}, {"marketId":"LTC-AUD","snapshotId":1567334110146000,"asks":[["10.2677","5665.85"],["10.2681","52355"],["10.271","1316"],["10.2782","2500"]],"bids":[["10.2612","2.93273959"],["10.2611","17847.844"]]}]
+        summary: market orderbook level 1
+
+    MarketCandlesExample:
+        value: [["2019-09-02T18:00:00.000000Z","15100","15200","15100","15199","4.11970335"],["2019-09-02T17:00:00.000000Z","14879.75","15115","14861.99","15115","10.01840031"]]
+        summary: market orderbook level 2
+
+    MarketsExample:
+        value: [{"marketId":"BTC-AUD","baseAssetName":"BTC","quoteAssetName":"AUD","minOrderAmount":"0.0001","maxOrderAmount":"1000000","amountDecimals":"8","priceDecimals":"2","status": "Online"},{"marketId":"LTC-AUD","baseAssetName":"LTC","quoteAssetName":"AUD","minOrderAmount":"0.001","maxOrderAmount":"1000000","amountDecimals":"8","priceDecimals":"2","status": "Post Only"}]
+        summary: list of markets
+
+    TimeExample:
+        value: {"timestamp":"2019-09-01T18:34:27.045000Z"}
+        summary: server time
+
+    ReportExample:
+        value: {"id":"jsqmkd72lmd13cd0","contentUrl":"https://report.s3.ap-southeast-2.amazonaws.com/jsqmkd72lmd13cd0","creationTime":"2019-08-20T18:08:06.110000Z","type":"TransactionReport","status":"Complete","format":"json"}
+        summary: report by id
+
+    ReportContentExample:
+        value: [{"transactionId":"12345","creationTime":"2017-12-11T06:01:28Z","recordType":"Fund Transfer","action":"Deposit","currency":"AUD","amount":"10","description":"EFT deposit was successfull.Reference: testing bank","balance":"10","referenceId":"260"},
+                {"transactionId":"830309","creationTime":"2018-07-11T06:26:34Z","recordType":"Trade","action":"Sell Order","currency":"BTC","amount":"-0.49","description":"Sell 0.49000000BTC @ AUD 19.87000000 Fully matched at 29.55000000","balance":"124.89128772","referenceId":"830303"},
+                {"transactionId":"830310","creationTime":"2018-07-11T06:26:34Z","recordType":"Trade","action":"Sell Order","currency":"AUD","amount":"14.4795","description":"Sell 0.49000000BTC @ AUD 29.55000000 Trade settled","balance":"17497.62177794","referenceId":"830303"},
+                {"transactionId":"830311","creationTime":"2018-07-11T06:26:34Z","recordType":"Trade","action":"Trading Fee","currency":"AUD","amount":"-0.1201797","description":"Sell 0.49000000BTC @ AUD 29.55000000 Trading fee","balance":"17497.50159824","referenceId":"830303"}]
+        summary: report content
+
+    WithdrawCryptoExample:
+        value: {"id":"4126657","assetName":"XRP","amount":"25","type":"Withdraw","creationTime":"2019-09-04T00:04:10.973000Z","status":"Pending Authorization","description":"XRP withdraw from [me@test.com] to Address: abc amount: 25 fee: 0","fee":"0","lastUpdate":"2019-09-04T00:04:11.018000Z","clientTransferId": "a3","paymentDetail":{"address":"abc"},"beneficiaryDetail":{"type":"Individual","firstName":"John","lastName":"Smith"}}
+        summary: crypto withdraw example
+
+    WithdrawFiatExample:
+        value: {"id":"1224081","assetName":"AUD","amount":"10","type":"Withdraw","creationTime":"2019-09-04T02:01:07.830000Z","status":"Pending Authorization","description":"Withdraw from [me@test.com] to bank, John Smith(BSB: 123456, Account: 6543321)","fee":"0","lastUpdate":"2019-09-04T02:01:08.013000Z","clientTransferId": "a43","paymentDetail":{"paymentDescription":"Ref 100002"},"beneficiaryDetail":{"type":"Business","businessName":"ABC Trading Inc"}}
+        summary: fiat withdraw example
+
+    WithdrawalResponse:
+        type: object
+        required:
+            - id
+            - assetName
+            - amount
+            - type
+            - creationTime
+            - status
+            - description
+            - fee
+            - lastUpdate
+        properties:
+            id:
+                description:
+                type: string
+            assetName:
+                description:
+                type: string
+            amount:
+                description:
+                type: string
+            type:
+                description:
+                type: string
+            creationTime:
+                description:
+                type: string
+            status:
+                description:
+                type: string
+            description:
+                description:
+                type: string
+            fee:
+                description:
+                type: string
+            lastUpdate:
+                description:
+                type: string
+            clientTransferId:
+                description:
+                type: string
+            paymentDetail:
+                description:
+                type: object
+                properties:
+                    txId:
+                        description: represents unique blockchain transaction id, used for crypto withdrawals
+                        type: string
+                    address:
+                        description: destination address for blockchain payment, used for crypto withdrawals
+                        type: string
+                    paymentDescription:
+                        description: can be used for both crypto and fiat withdrawals
+                        type: string
+            beneficiaryDetail:
+                $ref: '#/schemas/BeneficiaryDetail'
+
+
+    DepositCryptoExample:
+        value: {"id":"17866","assetName":"BTC","amount":"0.15710206","type":"Deposit","creationTime":"2019-08-16T23:19:03.553000Z","status":"Complete","description":"BITCOIN Deposit, B 0.15710206","fee":"0","lastUpdate":"2019-08-16T23:19:03.619000Z","paymentDetail":{"txId":"E1264A7D5742480B28494","paymentDescription": "payment-desc-1" }}
+        summary: crypto deposit example
+
+    TransferListExample:
+        value: [{"id":"123989","assetName":"BTC","amount":"0.3","type":"Withdraw","creationTime":"2019-08-27T21:41:56.832000Z","status":"Pending Authorization","description":"BTC withdraw from [me@test.io] to Address: 3QJsRCW3qSinyC amount: 0.3 fee: 0","fee":"0","lastUpdate":"2019-08-27T21:41:57.004000Z","clientTransferId": "a43","paymentDetail":{"address":"3QJmihAf3sRCW3qSinyC"},"beneficiaryDetail":{"type":"Individual","firstName":"John","lastName":"Smith"}},{"id":"1167870","assetName":"AUD","amount":"0.15710206","type":"Deposit","creationTime":"2019-08-16T23:23:39.452000Z","status":"Complete","description":"EFT Deposit, $ 0.15710206","fee":"0","lastUpdate":"2019-08-16T23:23:39.603000Z"}]
+        summary: crypto withdraw example
+
+    AddressGetExample:
+        value: {"address":"1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2","assetName":"BTC"}
+        summary: address example
+
+    WithdrawFeesExample:
+        value: [{"assetName":"AUD","fee":"0"},{"assetName":"BTC","fee":"0.0003"},{"assetName":"BCHABC","fee":"0.001"}]
+        summary: withdraw fees example
+
+    TransactionListExample:
+        value: [{"id":"1759","creationTime":"2015-02-21T21:49:54.911000Z","description":"Sell 0.3000BTC @ AUD 200.0000 Trading fee","assetName":"AUD","amount":"0.5082", "amountWithSign": "-0.5082", "balance":"81.9401","type":"Trading Fee","recordType":"Trade","referenceId":"17949"},{"id":"17958","creationTime":"2015-02-21T21:49:54.906000Z","description":"Sell 0.3000BTC @ AUD 200.0000 Trade settled","assetName":"AUD","amount":"60", "amountWithSign": "60", "balance":"82.4483","type":"Sell Order","recordType":"Trade","referenceId":"17949"},{"id":"15160","creationTime":"2014-11-12T11:30:02.773000Z","description":"Sell 0.1000BTC @ AUD 4.5100 Fully matched at 4.5100","assetName":"BTC","amount":"0.1", "amountWithSign": "-0.1", "balance":"99.144778","type":"Sell Order","recordType":"Trade","referenceId":"14435"},{"id":"8809","creationTime":"2014-10-05T21:18:19.714000Z","description":"XRP deposit was successful. Reference: 1","assetName":"XRP","amount":"100","amountWithSign": "100", "balance":"100","type":"Deposit","recordType":"Transfer","referenceId":"8808"}]
+        summary: transaction list example
+
+    BalanceListExample:
+        value: [{"assetName":"LTC","balance":"5","available":"5", "locked":"0"},{"assetName":"ETH","balance":"1.07583642","available":"1.0", "locked":"0.07583642"}]
+        summary: balance list example
+
+    TradingFeeExample:
+        value: {"volume30Day":"0.0098275","feeByMarkets":[{"makerFeeRate":"0.00849999","takerFeeRate":"0.00849999","marketId":"BTC-AUD"},{"makerFeeRate":"0.00849999","takerFeeRate":"0.00849999","marketId":"LTC-AUD"},{"makerFeeRate":"0.0022","takerFeeRate":"0.0022","marketId":"LTC-BTC"}]}
+        summary: trading fees example
+
+    AssetsExample:
+        value: [{"assetName": "AUD","assetFullName": "Australian Dollar", "minDepositAmount": "1", "maxDepositAmount": "5000000", "depositDecimals": "2", "depositFee": "0", "minWithdrawalAmount": "1", "maxWithdrawalAmount": "5000000", "withdrawalDecimals": "2", "withdrawalFee": "0", "status": "Online"}]
+        summary: list of assets

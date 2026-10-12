@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/api-evangelist/btcmarkets/main/json-schema/btcmarkets-create-withdraw-request-schema.json",
+  "title": "CreateWithdrawRequest",
+  "x-generated": "2026-10-13",
+  "x-method": "derived",
+  "x-generator": "derive-json-schema.py",
+  "x-source": "openapi/btcmarkets-openapi.yml#/components/schemas/CreateWithdrawRequest",
+  "type": "object",
+  "required": [
+    "assetName",
+    "amount"
+  ],
+  "properties": {
+    "assetName": {
+      "type": "string",
+      "description": "name of the asset to withdraw e.g. `AUD` or `BTC`"
+    },
+    "amount": {
+      "type": "string",
+      "description": "amount to withdraw"
+    },
+    "toAddress": {
+      "type": "string",
+      "description": "destination address for crypto withdrawal. mandatory for crypto assets. For `XRP` withdrawals, you can optionally add destination tag to the address with `?dt=12345` e.g. `1EJKj147QmEzywLnLpuxSr6SoPr1p62VBX?dt=123456`"
+    },
+    "accountName": {
+      "type": "string",
+      "description": "optional for AUD withdrawal. when not specified default bank information is used"
+    },
+    "accountNumber": {
+      "type": "string",
+      "description": "optional for AUD withdrawal. when not specified default bank information is used"
+    },
+    "bsbNumber": {
+      "type": "string",
+      "description": "optional for AUD withdrawal. when not specified default bank information is used"
+    },
+    "bankName": {
+      "type": "string",
+      "description": "optional for AUD withdrawal. when not specified default bank information is used"
+    },
+    "paymentDescription": {
+      "type": "string",
+      "description": "optional for AUD withdrawal. Maximum character length of 18 and only alphanumeric"
+    },
+    "clientTransferId": {
+      "type": "string",
+      "description": "optional for withdrawal requests."
+    },
+    "beneficiaryDetail": {
+      "$ref": "#/schemas/BeneficiaryDetail"
+    }
+  }
+}

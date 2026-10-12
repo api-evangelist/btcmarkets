@@ -1,0 +1,50 @@
+generated: '2026-10-13'
+method: derived
+generator: derive-data-model.py
+source:
+- openapi/btcmarkets-openapi.yml
+notation: has_one = property $ref; has_many = array of $ref; belongs_to = <entity>_id field
+summary:
+  entities: 10
+  entities_in_spec: 10
+  relationships: 4
+entities:
+- name: BatchOrderRequest
+  fields: 2
+- name: BeneficiaryDetail
+  fields: 4
+  description: Beneficiary information for the withdrawal recipient, required to comply with AUSTRAC's travel rule
+    obligations.
+- name: CancelOrderRequest
+  fields: 2
+- name: CancelOrderResponse
+  fields: 2
+- name: CancelOrders
+  fields: 1
+- name: CreateReportRequest
+  fields: 2
+- name: CreateWithdrawRequest
+  fields: 10
+- name: Order
+  fields: 16
+- name: PlaceOrderRequest
+  fields: 11
+- name: ReplaceOrderRequest
+  fields: 3
+relationships:
+- from: CancelOrderRequest
+  to: Order
+  type: belongs_to
+  via: orderId
+- from: BatchOrderRequest
+  to: PlaceOrderRequest
+  type: has_one
+  via: placeOrder
+- from: BatchOrderRequest
+  to: CancelOrderRequest
+  type: has_one
+  via: cancelOrder
+- from: CreateWithdrawRequest
+  to: BeneficiaryDetail
+  type: has_one
+  via: beneficiaryDetail

@@ -1,0 +1,2719 @@
+# x-archived-from: btcmarkets-openapi.yml
+# x-archived-on: 2026-10-13
+openapi: 3.0.0
+servers:
+- url: https://api.btcmarkets.net
+  description: Production
+info:
+  version: 3.0.0
+  title: BTC Markets API
+  contact:
+    name: API Support
+    email: support@btcmarkets.net
+    url: http://btcmarkets.net
+  x-logo:
+    url: /doc/images/small-logo.png
+    altText: BtcMarkets logo
+  description: "# Introduction\n  Welcome to BTC Markets API v3.\n\n  ## Overview\n\n  API v3 focuses on improving the experience for market markers, traders, and institutions, while covering all functionality currently provided via API v1 and v2. \n  \n  It also offers significant improvements compared to previous API generations, including:\n\n  \n\n  | Improvement       |  Description              |\n  |------------|:--------------------------------|\n  | Compatibility with common REST API guidelines     | Easier to develop apps using standard libraries in any programming language |\n  | Batch processing     |  Allows traders to combine multiple order placements and cancellations in a single HTTP request  |\n  | Support for ClientOrderId     |  Allows traders to use their internal order ID hence better tracking of orders |\n  | Simple and flexible APIs     | e.g. no need to make multiple API calls per market. A single call orders API returns open or historical orders.  |\n  | Using HTTP\
+    \ status code for error handling     |     |\n  | Easier pagination     |    |\n  | New features     |  e.g. reports API, full orderbook data, multiple market tickers etc.  |\n  | Standard data formats    |  e.g. amount as string, date/time as ISO 8601, etc. |\n  | Better documentation    |  |\n\n  # Document Change Log\n    \n    This section covers the most recent and important API updates: \n\n  * 2026-10-09 Added FIX dictionary for FIX Order Entry, Drop Copy and Market Data (preview)\n  * 2026-10-08 Added new transfer types to transfers API and transaction report: `Internal Transfer Out` and `Internal Transfer In`\n  * 2026-10-04 Added FIX Order Entry (preview)\n  * 2026-09-22 Added FIX Market Data (preview)\n  * 2026-09-07 Added FIX Drop Copy (preview)\n  * 2026-07-31 Documented rate limit response headers\n  * 2026-05-26 Added `beneficiaryDetail` to withdrawals API for AUSTRAC travel rule compliance\n  * 2025-05-28 Added new types to transaction API: `Buy Transfer` and `Sell Transfer`\n\
+    \  * 2025-05-28 Added `amountWithSign` to transaction API\n  * 2024-05-27 Added account trading report \n  * 2024-02-08 Increased FIX rate limit\n  * 2023-10-04 added response sample to withdrawal API\n  * 2023-06-07 added new values to FIX CxlRejReason\n  * 2023-05-05 added clientOrderId to WebSocket orderChange event\n  * 2022-09-23 Updated for valueInQuoteAsset to REST API \n  * 2022-09-20 Updated candles with new timeWindows\n  * 2022-09-20 Added valueInQuoteAsset to REST API - List Trades API\n  * 2022-09-19 Added clientTransferId for Fund Management APIs - Withdrawals\n  * 2022-08-31 Update FIX throttle limits  \n  * 2022-08-30 Added business rejects for FIX  \n  * 2022-08-30 Added ExecID to FIX execution reports  \n  * 2022-08-24 Updates to logon message\n  * 2022-08-23 Fixed port in FIX API endpoint\n  * 2022-08-22 Updated documentation for FIX Mass Cancels and Logon messages\n  * 2022-08-22 Corrections for FIX messages\n  * 2022-08-17 Added FIX mass cancellation messages   \
+    \ \n  * 2022-07-25 Added FIX API section.  \n  * 2022-07-21 Added `valueInQuoteAsset` to WebSocket orderChange event.  \n  \n  # General Notes\n\n  ### API Endpoint\n\n  Base URL for all public and private APIs: https://api.btcmarkets.net\n\n  The path for all APIs starts with `/v3`. For instance, the `time` API would be accessed via `https://api.btcmarkets.net/v3/time`.\n\n    \n  ### Request/response Format\n\n  All requests and responses use `application/json` content type for all APIs.\n\n  ### Date/time Format\n\n  All APIs return date/time format in ISO 8601 with microsecond precision. Sample time returned: `2019-08-20T06:22:11.123456Z`.\n\n  ### Number Format\n  Unless specified, all amounts are formatted as `string`. For instance when placing a new order, pass `\"1.45\"` as the amount to buy 1.45 of `LTC`.\n\n  At this stage, we support up to eight digits of decimal points when processing orders, trades, and transfers.\n\n  Every market has a configuration for the number of decimal\
+    \ points used for pricing. For instance, for the `BAT-AUD` market you can specify up to four decimal points for `price` and for `amount` you can specify up to eight decimal points.\n  Please refer to the `/v3/markets` API for more information.\n\n  ### Sort Order\n  By default, all lists are sorted in descending order, meaning the most recent records appear first in the list.\n\n  ### Null Values\n  Data objects returned by the HTTP response will not include attributes with null values.\n  For instance, if you are not using clientOrderId for placing orders, then the data object returned by the HTTP response won't include it.\n\n  APIs defined in this document have sample response format. In some cases, there is also an option to view the list of all possible attributes (from the right panel).\n\n  ### Record IDs\n  Records generated by the exchange will have IDs generated and represented in `string` format.\n\n  At this stage, some of the record IDs generated by the exchange might have\
+    \ numbers only; however, we can't guarantee that they will continue to use numbers only as we continue to change our underlying systems.\n\n  Therefore, we recommend that all client apps use string format to represent record IDs in order to avoid bugs at a later stage.\n\n  ### Rate Limits\n  Each API is throttled individually. All APIs are rate limited, and we currently measure rates over 10 second intervals. \n  \n  For public APIs (e.g. get orderbook, ticker, etc.), the rate limit is tied to the client IP address. For private APIs (e.g. place order, cancel order, etc), the rate limit is tied to the account that created the API key.\n  \n  The default rate limit (unless otherwise specified) for public and private APIs is up to `150 calls per 10 seconds`. \n  \n  There are exceptions to this rule as per below:\n\n  | Name       |  API       | Limit              |\n  |------------|:-----------|:---------------------|\n  | Order placement API | /v3/orders POST     | 50 calls per 10 seconds\
+    \ |\n  | Replace order API | /v3/orders/{id} PUT     | 50 calls per 10 seconds |\n  | Batch order API | /v3/batchorders POST     | 10 calls per 10 seconds |\n  | Batch market orderbook/ticker APIs | /v3/markets/orderbooks GET     | 30 calls per 10 seconds |\n  | Withdraw request API | /v3/withdrawals POST     | 20 calls per 10 seconds |\n\n  \n  Note: A single batch order API can include up to 10 individual place or cancel order requests. Also, the batch market orderbook API allows you to retrieve orderbook for multiple markets in a single call.\n\n  #### Rate Limit Response Headers\n\n  Every rate limited API returns the following response headers. Header names are case insensitive.\n\n  | Header       |  Description              |\n  |------------|:--------------------------------|\n  | `x-ratelimit-limit` | Number of calls allowed within a single rate limit window. |\n  | `x-ratelimit-remaining` | Number of calls still available in the current window. |\n  | `x-ratelimit-reset` |\
+    \ Unix time in seconds at which the current window ends. |\n\n  Rate limits use a fixed 10 second window. The quota is not replenished gradually: `x-ratelimit-remaining` decreases as calls are made, and at the time reported by `x-ratelimit-reset` the current window ends and the full `x-ratelimit-limit` quota becomes available again.\n\n  Requests rejected with HTTP status `429 - Too Many Requests` also include these headers, so `x-ratelimit-reset` indicates when the request can be retried.\n\n\n\n  ### HTTP Status\n  All APIs return commonly used HTTP statuses (e.g. 400, 401, 403, etc.) for errors and HTTP status 200 for a successful response.\n\n\n# API Client Libraries\n\n ### Sample Code\n  If you are starting to develop your client app, then the following samples can be useful. These samples demonstrate authentication for various types of requests.\n\n  - Node.js:  https://github.com/BTCMarkets/api-v3-client-node\n  - .NET(C#): https://github.com/BTCMarkets/api-v3-client-dotnet\n\
+    \  - Python: https://github.com/BTCMarkets/api-v3-client-python\n  - Java: https://github.com/BTCMarkets/api-v3-client-java\n  - Go: https://github.com/BTCMarkets/api-v3-client-go\n  - Swift: https://github.com/BTCMarkets/api-v3-client-swift\n\n\n\n ### Help from the Community\n\n If you have a technical question, someone else in the community might have already asked the same question and solved the problem.\n\n Please check out past issues and feel free to raise new questions or issues here:\n\n https://github.com/BTCMarkets/API/issues\n\n\n ### Previous Versions of API\n\n You can find information about previous versions of this API here:\n\n https://github.com/BTCMarkets/API#api-v1v2\n\n\n# Error Handling\n\nBy default, all successful requests result in HTTP `200` status and with the appropriate entity being returned.\n\nIf any issues occur in processing the request, then a response code and a body containing a JSON message with more information about the underlying problem will\
+    \ be returned.\n\nFor instance, placing an order with an invalid amount (e.g. too low) will result in a HTTP 400 error and a response body with the following information:\n\n`{\"code\":\"InvalidOrderAmount\", \"message\":\"invalid order amount\"}`\n\nWe would encourage client app developers to use appropriate HTTP frameworks/libraries that allow them to capture the body of the response for the handling of errors.\n\n## HTTP Status Codes\n\nThe following HTTP status codes are supported. We make our best effort to send one of the following responses in any situation.\n\n\n| HTTP response       |  Description                     |\n|------------|:--------------------------------|\n| 200 - OK       | The HTTP request was successful. |\n| 400 - Bad Request     | The request failed due to a syntax error or is missing a required parameter.   |\n| 401 - Unauthorized       | Invalid API key or message signature generation issue |\n| 403 - Forbidden       | You do not have access to the requested\
+    \ resource. |\n| 404 - Not Found       | The requested resource was not found.  |\n| 429 - Too Many Requests       | You have exceeded throttle. |\n| 500 - Internal Server Error  | We failed to process your request due to a server problem.  |\n| 502 - Bad Gateway  | We are unable to process your request at this time due to technical issues.|\n| 503 - Service Unavailable  | Exchange is down or under maintenance |\n\n## API Error Codes\n While handling HTTP status codes covers the requirements for most cases and client apps, there are situations where having a machine-readable and specific error code would help to handle specific cases more appropriately.\n\n For instance, when an account runs out of funds, calling a \"placeOrder\" API would result in an HTTP response code of 400 and an error message of \"Insufficient funds\". A client app may categorize all HTTP 400s as an indication of an issue and halt running or log the issue for a person to investigate and fix. However, some apps\
+    \ may have application logic specifically to deal with the issue of running out of funds. In this case, the app would parse the response text \"Insufficient funds\" and determine that it needs to make a deposit.\n\n Using the text message to make that decision might be difficult given that the text requires parsing. Additionally, if the text message is updated in the future (e.g. updated to \"Insufficient funds in your ETH wallet\") it may break the client application logic.\n\n As a result, an additional error code is provided (along with the `message`) inside the body of the HTTP response that can be used to handle specific situations programmatically.\n\n Below is a sample of such error codes:\n\n `{\"code\":\"IncorrectDecimalPoints\",\"message\":\"incorrect number of decimal points for price\"}`\n\n Please refer to this section for a full list of errors: [**Full list of error codes**](#tag/ErrorCodes)\n\n We ensure that those error codes remain the same for the lifetime of the API.\
+    \ However, the text message that comes with errors may change.\n\n Also, some of the generic codes (e.g. BadRequest) may be changed to be specific codes (e.g. InvalidAmount) in the future. This change will not occur in the opposite direction (i.e specific to generic code).\n\n\n # Authentication\n\n  ## Generate API key\n  Before you begin, please make sure to generate API keys on the website. API keys come with permission for each area (e.g. trading, account, and fundtransfer).\n\n  ## Authentication Parameters\n  In order to authenticate your request, the following parameters are required:\n  * API key\n  * API private key\n  * HTTP method: `POST`,  `GET` or `DELETE`\n  * Current timestamp in millisecond (you check server time by calling API `/v3/time` )\n  * Path of the request (with no query string)\n\n  ## Authentication Process\n  Use the following steps:\n  * Build a string message: `method + path + timestamp + data`.\n  * Sign the message using `Hmac512` algorithm.\n  * Add the\
+    \ following HTTP headers: `BM-AUTH-APIKEY`, `BM-AUTH-TIMESTAMP`, and `BM-AUTH-SIGNATURE`.\n\n\n  ## Build Message Signature\n  The message to sign is a string concatenation of the HTTP method, API path, timestamp, and post data.\n\n  The following code sample builds the message for authenticating for `/v3/reports` API using HTTP `POST`.\n\n  ```Javascript\n    var timestamp = Date.now();\n    var path = '/v3/reports';\n    var data = JSON.stringify({type:\"TransactionReport\",format:\"json\"});\n    var message =  \"POST\" + path + timestamp + data;\n  ```\n\n  * Replace `POST` with `GET` or `DELETE` for `GET/DELETE` APIs.\n  * For `GET` and `DELETE` requests the data portion of the message has no value; hence, it is not added to the message for signing.\n\n\n  ## Sign the Message\n  The following code sample signs the message for authentication.\n\n  ```Javascript\n    var buffer = Buffer.from(apiPrivateKey, 'base64');\n    var hmac = crypto.createHmac('sha512', buffer);\n    var signature\
+    \ = hmac.update(message).digest('base64');\n  ```\n\n  ## Set HTTP Headers\n  The following code sample sets HTTP headers for authentication.\n\n  ```Javascript\n    var headers = {\n      \"Accept\": \"application/json\",\n      'Content-Length': Buffer.byteLength(data),\n      \"Content-Type\": \"application/json\",\n      \"BM-AUTH-APIKEY\": apiKey,\n      \"BM-AUTH-TIMESTAMP\": timestamp,\n      \"BM-AUTH-SIGNATURE\": signature\n    };\n  ```\n\n  ## Sending HTTP Request\n  The following code sample sends HTTP request.\n\n  ```Javascript\n  var post_options = {\n  \t\thost: baseUrl,\n  \t\tpath: path,\n  \t\tmethod: 'POST',\n  \t\theaders: headers\n  };\n  var post_req = https.request(post_options, function(res) {\n  \tres.on('data', function (chunk) {\n  \t\tconsole.log('Http Response Code: ' + res.statusCode);\n  \t\tconsole.log('Response: ' + chunk);\n  \t});\n  });\n  post_req.write(data);\n  post_req.end();\n  ```\n\n # Pagination\n  API v3 uses cursor-based pagination. This\
+    \ allows users to retrieve a specified number of records before or after a given number.\n\n ## Pagination Parameters\n\n APIs with support for pagination will return two additional HTTP headers for each request.\n * `BM-BEFORE`\n * `BM-AFTER`\n\n Then for those APIs, the following query parameters can be passed to handle pagination.\n\n  | Name       |  Mandatory |  Description                     | \n  |------------|:----------:|:---------------------------------|\n  | limit      |  no        |  Specifies how many items to return any number between 1 and 200  | \n  | before     |  no        |  Return items before given cursor  | \n  | after      |  no        |  Return items after given cursor  | \n\n\n ## Pagination Process\n Use the following steps:\n 1. Call the API with no query string params (you can specify the `limit`).\n 2. Parse the HTTP response and extract the `BM_BEFORE` and `BM-AFTER` HTTP headers.\n 3. If you need to retrieve older records, then pass `before=1234567` as\
+    \ query string with `1234567` being the value of HTTP header `BM-BEFORE`.\n 4. If you need to retrieve newer records, then pass `after=123589` as query string with `123589` being the value of HTTP header `BM-AFTER`.\n 5. Repeat from step 2.\n\n\n  # Batch Processing\n\n  Batch processing is supported for order placement, cancellation, and retrieval APIs. This gives more flexibility to traders and market makers for implementing different trading strategies.\n\n  Batch requests are not considered atomic actions so each individual item inside the request is handled separately to ensure that an individual response is present for each request.\n\n  One use case for batch processing is canceling an existing order and placing a new order with different attributes in a single HTTP call.\n\n  Error handling for batch requests is similar to standard REST APIs with the exception that some of the error messages are no longer returned as HTTP status.\n\n  For instance, when placing a new order, the\
+    \ following two error messages might be returned as a result of an invalid request:\n\n  | Request       |  HTTP Status                 |\n  |------------|:------------------------|\n  | using price:\"12.32abc\"      |  HTTP 400 - invalid due to invalid price  |\n  | placing order with insufficient fund     |  HTTP 400 - insufficient fund   |\n\n  However, if you are placing a batch request of multiple order placements, when the content of the batch is validated, each individual request returns an error message inside the response body; hence the above errors do not result in HTTP 400. Instead, you should parse the response body to determine which requests were successful.\n\n  Please refer to the [**Batch Order Placement**](#tag/Batch-Order-APIs) section for more information about how to handle the response body and errors for batch requests.\n"
+externalDocs: null
+tags:
+- name: order_status
+  x-displayName: Order Status
+  description: 'An order can have any of the following statuses
+
+    - `Accepted`: The order has been accepted by the trading platform.
+
+    - `Placed`: The order has been submitted to the orderbook and appropriate funds are locked.
+
+    - `Partially Matched`: The order has been partially matched.
+
+    - `Fully Matched`: The order has been fully matched.
+
+    - `Cancelled`: The order has been canceled and is no longer in the orderbook.
+
+    - `Partially Cancelled`: The order has been canceled after being partially executed.
+
+    - `Failed`: The order failed due to issues; for example, insufficient funds.
+
+
+    Some of those statuses are considered final. Hence, the order can no longer be changed.
+
+    '
+- name: OrderTypes
+  x-displayName: Order Types
+  description: 'The following order types are supported:
+
+    - Limit
+
+    - Market
+
+    - Stop Limit
+
+    - Stop
+
+    - Take Profit
+
+    '
+- name: StopOrders
+  x-displayName: Stop Orders
+  description: 'In general, stop orders stay in the orderbook and are only activated once the trigger price of the order is reached by the market. Depending on the type, upon triggering the order will be placed in the orderbook as a Limit or Market order that will then execute as normal.
+
+    - For Stop Limit orders, the order type attribute will be "Stop Limit" and an additional field triggerPrice must be supplied.
+
+    - For Stop orders, the order type attribute will be "Stop" and an additional field triggerPrice must be supplied with the same number conversion as price. When triggerPrice is reached, a market order will be executed.
+
+    - For Take Profit orders, the order type attribute will be "Take Profit" and an additional field triggerPrice must be supplied with the same number conversion as price. When triggerPrice is reached, a market order will be executed.
+
+    - For both Stop orders and Take Profit orders (depending on existing orders in the orderbook and market price at the time of triggering) they will be executed similar to Market orders.
+
+    '
+- name: ClientOrderId
+  x-displayName: Client Order ID
+  description: "`clientOrderId` is an optional parameter that can be set by the client applications to track orders using their internal order management system. `clientOrderId` is a string field between 1 to 64 with the following characters allowed:\n   `a-z, A-Z, 0-9, -` allowing standard formats like UUID.\n\n   We have tried to distinguish between the exchange `orderId` and `clientOrderId` returning both attributes while also allowing users to retrieve orders based on both attributes. Hence, APIs like `/v3/orders/{id}` use `id` to demonstrate that either the `orderId` or `clientOrderId` can be passed.\n\n  `clientOrderId` is optional for normal order placement. However, it is mandatory if you decide to use batch order placement.\n"
+- name: Timeinforce
+  x-displayName: Time in Force
+  description: '`timeInForce` option allows traders to control order lifetime with the following possible values.
+
+    * `GTC`: good till canceled (the default value if not specified)
+
+    * `IOC`: immediate or cancel. The order should be canceled immediately after being placed in the orderbook. The order may be matched against existing orders as part of the initial placement in the orderbook, but any volume that is is left from trade matching will be canceled immediately after placement. Therefore, possible results of an order with `IOC` option will be either `Fully Matched`, `Partially Matched`, `Cancelled` or `Partially Cancelled`.
+
+    * `FOK`: fill or kill. The order is canceled if it''s not executed fully at the time of placement. Possible results of an order with `FOK` option will be either `Fully Matched` or `Cancelled` immediately.
+
+
+    Note: When `postOnly` option is set to `true` then the only possible value for `timeInForce` is `GTC` or do not pass any value for timeInForce.
+
+    '
+- name: TargetAmount
+  x-displayName: Desired Target Amount
+  description: 'This is an optional parameter that allows traders to instruct the system to `sell` (or `buy`) as many numbers of `instrument` as possible
+
+    so that the `targetAmount` is reached. For example- as a trader, I''d like to receive $100 (the target amount) by selling as many of my `XRPs` (the actual volume is determined by the system at the time of placing the order) as I can.  The system then makes the best effort to determine the total volume of `XRP` that is needed to sell in order to generate $100, considering all trading fees and partial order match, etc.
+
+    This feature eliminates the need for traders to calculate how many XRPs are needed before placing an order, which might be a particularly difficult task when the market is moving quickly.
+
+    This option also works for `Bid` orders with the use case being: I''d like to spend a maximum of $100 on buying `LTC` and the system determines the total volume that I can purchase considering all fees.
+
+    `targetAmount` option is only applicable to `Market` orders.
+
+
+
+    Please note that `price` and `volume` are not required when using `targetAmount`.
+
+    '
+- name: PostOnly
+  x-displayName: Post Only Orders
+  description: "`postOnly` is an optional boolean flag with true/false value. The default is false for all new orders. When this option is set to `true`, it means the order should only be posted to the orderbook if it does not result in any trades at the time of placement.  If any part of the order results in trade execution, the order will be canceled. Please note: once the order is accepted as part of the initial placement, then it may execute at any later time depending on the market price movements. The option is only applied for the time of placement.\nThe `postOnly` option is only applicable to `Limit` orders.\n This option is mainly useful for market makers and liquidity providers.\n"
+- name: SelfTrade
+  x-displayName: Self Trade Prevention
+  description: 'The `selfTrade` option allows traders to control the possibility of their own orders executing against each other. For instance, if you already have an order in the orderbook to buy 100 `XRP` for the price of 0.50 and then place a new order to sell 100 `XRP` with the same price of 0.50, the new sell order will be canceled immediately and won''t be submitted to the orderbook. The existing order (the buy order for 100 XRP) will continue to stay in the orderbook and will work as normal.
+
+    The same is true also when the new order has the potential to match existing orders partially. So, using the previous example (your existing buy order of 100 `XRP`), if you place a new sell order with the `selfTrade` option to sell 200 `XRP` (given that 100 of those `XRP` will potentially match with an existing order that does not belong to you) then again the entire new sell order will be canceled immediately due to the `selfTrade` option.
+
+    Please also note that this option is only checked once at the time of order arrival. If the order stays in the orderbook, then this option is not applicable anymore.
+
+
+    Possible values for the `selfTrade` option are:
+
+    - `A`: represents Allowed and means that self trade is allowed. This is the default behavior if `selfTrade` is not specified.
+
+    - `P`: represents Prevented and means that self trade is prevented
+
+    '
+- name: market_status
+  x-displayName: Market Status
+  description: "Our trading engine uses a number of statuses to assist API clients as they manage their trading business logic. These statuses also open orders during scheduled maintenance and unforeseen service downtime. \n\nThe market status list covers whether the market is operational, the type of orders that can be placed, whether open orders can be cancelled, and whether any order matching can occur.\n\n\n\nMarket Status Options:\n- `Offline`: The market is currently offline and order placement is not available at this time.\n- `Cancel Only`: This market currently allows cancelling existing orders only. Order placement is temporarily suspended.\n- `Post Only`: The market currently only accepts new orders with postOnly flag set to true. Orders will be placed in the orderbook but no order match will occur.\n- `Limit Only`: This market currently accepts limit orders only.\n- `Online`: The market is operating normally. All order types may be submitted and any matching can occur.\n"
+- name: ErrorCodes
+  x-displayName: List of API Error Codes
+  description: 'Below covers all the error codes returned by API.
+
+
+
+    | Error Code       |  Description              |        Category
+
+    |------------|:--------------------------------|:------------------|
+
+    | InvalidPrice     | invalid order price   | orders   |
+
+    | InvalidAmount     | invalid order amount   | orders |
+
+    | InvalidTriggerPrice     |  invalid trigger price  | orders |
+
+    | InvalidTargetAmount     |   |    orders |
+
+    | InvalidOrderSide     |   |   orders |
+
+    | InvalidOrderType     |   |   orders |
+
+    | TradingNotAvailable     |   |   orders |
+
+    | TradingNotAvailableForMarket     |   | orders |
+
+    | OrderTypeNotAvailable     |   |  orders |
+
+    | InvalidTimeInForceOption     |   |  orders |
+
+    | InvalidSelfTradeOption     |   |  orders |
+
+    | InvalidOrderId     |   |  orders |
+
+    | OrderNotFound     |   |  orders |
+
+    | DuplicateClientOrderId     |   |  orders |
+
+    | InvalidClientOrderId     |   |  orders |
+
+    | InsufficientFund     |   |  orders |
+
+    | OrderAlreadyCancelled     |   |  orders |
+
+    | OrderBeingCancelled     |   |  orders |
+
+    | OrderStatusIsFinal     |   |  orders |
+
+    | TradeNotFound     |   |  orders |
+
+    | IncorrectDecimalPoints     |   |  orders |
+
+    | FeatureNotAvailableForMarket     |   |  orders |
+
+    | InvalidAPIKey     |   |  auth |
+
+    | InvalidAuthTimestamp     |   |  auth |
+
+    | InvalidAuthSignature     |   |  auth |
+
+    | InsufficientAPIPermission     |   |  auth |
+
+    | InvalidMarketId     |  market symbol is invalid  |   common  |
+
+    | InvalidAccount     | something is wrong with account setup  |  common |
+
+    | InvalidBatchRequest     |  |  common |
+
+    | InvalidParameterCombination     |  |  common |
+
+    | DuplicateIdInRequest     |  |  common |
+
+    | InvalidIdParameter     |  |  common |
+
+    | InvalidPaginationParameter     |  |  common |
+
+    | InvalidFeatureCombination     |  |  common |
+
+    | MissingArgument     |  |  common |
+
+    | FeatureNotAvailable     |  |  common |
+
+    | MissingArgument     |  |  common |
+
+    | InvalidAssetName     |  |  common |
+
+    | AmountExceedAvailableFund     |  |  fund |
+
+    | AmountIsTooLow     |  | fund |
+
+    | WithdrawIsNotAvailable     |  |  fund |
+
+    | TransferNotFound     |  |  fund |
+
+    | InvalidTransferBeneficiaryDetail     |  beneficiaryDetail is missing or invalid (mandatory from 2026-06-15 12:00 AEST to comply with AUSTRAC travel rule)  |  fund |
+
+    | DepositAddressNotAvailable     |  |  fund |
+
+    | InvalidAddress     |  |  fund |
+
+    | MarketNotFound     |  |  market |
+
+    | InvalidTimeWindow     |  |  market |
+
+    | InvalidTimestamp     |  |  market |
+
+    | InvalidOrderbookLevel     |  |  market |
+
+    | ReportNotFound     |  |  report |
+
+    | InvalidReportParameter     |  |  report |
+
+    | BadRequest     |  |  HTTP status |
+
+    | UnAuthorized     |  |  HTTP status |
+
+    | Forbidden     |  |  HTTP status |
+
+    | NotFound     |  |  HTTP status |
+
+    | TooManyRequests     |  |  HTTP status |
+
+    | InternalServerError     |  |  HTTP status |
+
+    | BadGateway     |  |  HTTP status |
+
+    '
+- name: WS_Overview
+  x-displayName: WebSocket Overview
+  description: "\nBTC Markets' WebSocket feed provides real-time market data covering orderbook updates, order life cycle, and trades.\n\nIn order to start receiving real-time messages, a WebSocket connection needs to be made. This should be followed by a message to subscribe to the channels and marketIds you are interested in.\n\n### Endpoint\n\nThe endpoint for WebSocket v2 is: `wss://socket.btcmarkets.net/v2`.\n\n### Channels\n  `tick`, `trade`, `orderbook`, `orderbookUpdate`, `orderChange`, `fundChange`, `heartbeat`\n\n### MarketIds\nMarketIds represent a list of markets and are used to filter events for only the specific markets you are interested in.\n\nYou should be able to get a list of active markets from here:\nhttps://api.btcmarkets.net/v3/markets\n\nFormat: `BTC-AUD`, `XRP-BTC`, etc.\n\nNote: marketIds are only applicable to public events (e.g. `tick`, `orderbook`, `trade`).\n\n### Message Types\nAll messages published include a `json` attribute called `messageType` that represents\
+    \ the type of event that is being received.\n\nThose message types events include:\n- `tick`\n- `trade`\n- `orderbook`\n- `orderbookUpdate`\n- `orderChange`\n- `fundChange`\n- `error`\n- `heartbeat`\n\n### Subscriptions\nSending a `subscribe` message allows you to start receiving events for the specified channels and marketIds.  If you need to change your subscription, then simply send a new `subscribe` message with new channel names and marketIds.\n\n### Managing Subscriptions\n While sending a `subscribe` message works in most situations, there may be times you want to have the flexibility to add or remove subscriptions instead of subscribing to all channels/markets at the same time.\n\n In those situations, send the same subscription message (all rules apply for authentication, marketIds, etc.) and the message type will be `addSubscription` or `removeSubscription`. If you need to remove the subscription for all markets for a given channel, just send an empty list of marketIds.\n\n\
+    \ Note when using `addSubscription` and `removeSubscription`:\n * In order to use those messages, you will need an existing subscription, so make sure to send a valid subscription message at least once.\n * With your subscription message (and also add/remove messages) send the additional parameter: `clientType: \"api\"`.\n\n\n\n### Client Libraries\nBelow are working examples of how to connect to this WebSocket feed in different languages:\n\n* Javascript: https://github.com/ngin-io/websocket-client-node\n* Java: https://github.com/ngin-io/websocket-client-java\n* Python: https://github.com/ngin-io/websocket-client-python\n\n### Rate Limit\nNew connections to the WebSocket feed are rate limited to 3 attempts per 10 seconds per IP. Frequent WebSocket connections that exceed the rate limit will be closed by the server.\n\n### Connection Issues\nFrom time to time, your WebSocket connection may be disconnected (e.g. as we upgrade software on our servers). We recommend adding logic to your\
+    \ client in order to refresh your connection every 24 hours or in case of the connection dropping out.\n"
+- name: WS_Public_Events
+  x-displayName: WebSocket Public Events
+  description: "\n## Tick Event\nThe `tick` event is published every time `lastPrice`, `bestBid`, or `bestAsk` is updated for a market which is the result of orderbook changes or trade matches.\n\nSample event:\n  ```javscript\n  { marketId: 'XRP-AUD',\n    timestamp: '2021-12-01T05:47:35.185Z',\n    bestBid: '1.4028',\n    bestAsk: '1.4047',\n    lastPrice: '1.4031',\n    volume24h: '1055000.9042866',\n    volumeQte24h: '1480271.76880452',\n    price24h: '0.0191',\n    pricePct24h: '1.38',\n    messageType: 'tick',\n    low24h: '1.3862',\n    high24h: '1.45',\n    snapshotId: 1638337655185000\n  }  \n  ```\n\n## Trade Event\n  In order to receive `trade` events, please add `trade` to the list of channels when subscribing via WebSocket.\n\nSample event:\n\n  ```javscript\n  { marketId: 'BTC-AUD',\n    timestamp: '2019-04-08T20:54:27.632Z',\n    tradeId: 3153171493,\n    price: '7370.11',\n    volume: '0.10901605',\n    side: 'Ask',\n    messageType: 'trade'\n  }\n  ```\n## Orderbook Event\n\
+    \  In order to receive `orderbook` events, please add `orderbook` to the list of channels when subscribing via WebSocket. The current orderbook event represents the latest orderbook state. A maximum of 50 bids and asks are included in each event.\n\n  For efficiency, the `bids` and `asks` are are published as arrays of `tuples` representing `[price, volume]` for each order in the orderbook.\n\nSample event:\n\n  ```javascript\n  { marketId: 'BTC-AUD',\n    timestamp: '2019-04-08T22:23:37.643Z',\n    bids:\n      [ [ '7418.46', '0.04' ],\n        [ '7418.45', '0.56' ],\n        [ '7100', '0.01' ] ]\n      asks:\n        [ [ '7437.53', '0.76' ],\n          [ '7437.54', '0.3646349' ],\n          [ '7446.94', '0.6' ],\n          [ '7700', '0.1' ] ]\n      messageType: 'orderbook',\n      snapshotId: 1638338323367000\n  }\n  ```\n## OrderbookUpdate Event\nIn many cases, it's more appropriate to maintain a local copy of the exchange orderbook by receiving only updates instead of the entire\
+    \ orderbook.\n\nSome advantages of using `orderbookUpdate` as opposed to `orderbook` are:\n1. `orderbook` event only delivers top 50 orders, whereas `orderbookUpdate` covers the entire orderbook.\n2. `orderbook` always uses larger bandwidth due to the size of the messages that include 50 bids/asks, whereas `orderbookUpdate` only delivers small incremental changes.\n3. We make the best effort to deliver all individual updates to the orderbook via `orderbookUpdate` messages. However, `orderbook` may only send a single message if two updates happen at a very close millisecond interval.\n\n### Orderbook Snapshot Message:\n\nSubscribing to the `orderbookUpdate` channel allows you to receive a snapshot of the orderbook at first (immediately after subscription), and then the subsequent messages only provide updates to the orderbook.\nThe initial orderbook snapshot message covers all bids/asks represented as arrays of [price, volume, count] tuples as well as `snapshot:true` attribute.\n\nSample\
+    \ snapshot message:\n\n ```javascript\n  { marketId: 'LTC-AUD',\n    snapshot: true,\n    timestamp: '2020-01-08T19:47:13.986Z',\n    snapshotId: 1578512833978000,\n      bids:\n      [ [ '99.57', '0.55', 1 ],\n        [ '97.62', '3.20', 2 ],\n        [ '97.07', '0.9', 1 ],\n        [ '96.7', '1.9', 1 ],\n        [ '95.8', '7.0', 1 ] ],\n      asks:\n        [ [ '100', '3.79', 3 ],\n          [ '101', '6.32', 2 ] ],\n      messageType: 'orderbookUpdate'\n  }\n  ```\n\n\n ### Orderbook Update Message:\n\n The message format for subsequent orderbook updates is the same as the initial snapshot except that it does not have the element `snapshot:true` in it.\n The subsequent messages only provide updates to the orderbook. The update message is in the form of an array of [price, volume, count] tuples aggregating order volumes for a given price and total number of orders for that price.\n For instance, [\"99.57\",\"0.55\",2] means the total volume of bids for the price of `99.57` is `0.55`\
+    \ and there is a single order with that price.\n\n Sample update message:\n\n ```javascript\n  { marketId: 'LTC-AUD',\n    timestamp: '\"2020-01-08T19:47:24.054Z',\n    snapshotId: 1578512844045000,\n    bids:  [ ['99.81', '1.2', 1 ], ['95.8', '0', 0 ]],\n    asks: [ ['100', '3.2', 2 ] ],\n    messageType: 'orderbookUpdate',\n    checksum: '3743243528'\n  }\n  ```\n\n ### How to use Orderbook Updates:\n\n In the above sample update message:\n * A new bid order has been added to the orderbook with a price of `99.81` and total volume of `1.2`.\n * The bid order with the price of `95.8` has been removed from the orderbook (hence both the volume and count are zero).\n * The total volume and order count for the ask order with a price of 100 have been changed. The new total volume is `3.2` and there are two orders with that price.\n\n\n Assuming you have a local copy of the exchange orderbook (as per the sample snapshot above), then applying orderbook update means:\n * Add a new bid order\
+    \ tuple with price of `99.81` to your orderbook copy.\n * Remove the bid order tuple with price of `95.8` from your orderbook copy.\n * Replace the ask order tuple with price of `100` with new volume and count in your orderbook copy.\n\n\n ### Maintaining a Local Copy of the Exchange Orderbook\n\n The following steps can be used to maintain an up-to-date copy of the exchange orderbook for a given market:\n\n * Subscribe to `orderbookUpdate` channel and provide a marketId.\n * Start to queue all incoming messages.\n * As soon as you receive a message with `snapshot:true`, keep it as your local orderbook copy.\n * Iterate through the items in the queue and apply changes to your local orderbook copy.\n * When applying items from the queue, disregard items with a snapshotId smaller or equal to the snapshotId of your local orderbook copy.\n * Once all items in the queue are processed, your local orderbook copy is up to date.\n * Now apply all incoming messages as they arrive.\n\n It's a good\
+    \ practice to refresh your copy at some interval (e.g. once every few hours).\n\n #### Orderbook Update Checksum\n Every orderbookUpdate event will have a checksum number as part of the message. The checksum is a CRC32 value based on the top 10 bids and top 10 asks that can be used by a client application to verify that the local orderbook data is in the correct state. It can be used as a signal to refresh the orderbook in case the data is out of date.\n \n Please refer to the following sample as a guide to generate checksum for orderbookUpdate events:\n * https://github.com/ngin-io/websocket-checksum\n\n\n## Heartbeat Event\n  If you subscribe to `heartbeat` event then the server will send you a heartbeat event every five seconds.\n\n  heartbeat event:\n    ``` javascript\n    {\n      messageType: 'heartbeat',\n      channels: [\n      {\n        name: 'orderChange'\n      },\n      {\n        name: 'orderbook',\n        marketIds: [\n          'BTC-AUD',\n          'XRP-AUD'\n   \
+    \     ]\n      },\n      {\n        name: 'heartbeat'\n      }\n      ]\n    }\n    ```\n    Note: Once a new subscription request is confirmed, a single `heartbeat` event is published to the client in order to confirm the connection is working. This is regardless of requesting to subscribe to the `heartbeat` channel.\n\n\n## Error Event\n  In case of errors, a message type of `error` is published.\n\n  * Authentication error\n  * Invalid input error\n  * Internal server error\n  * Throttle error\n\n  Sample error events:\n\n  * Invalid Channel names\n  ```javascript\n  {\n      messageType: 'error',\n      code: 3,\n      message: 'invalid channel names'\n  }\n  ```\n\n  * Invalid MarketIds\n  ```javascript\n  { messageType: 'error',\n    code: 3,\n    message: 'invalid marketIds'\n  }\n  ```\n\n  * Authentication error\n  ``` javascript\n  { messageType: 'error',\n    code: 1,\n    message: 'authentication failed. invalid key'\n  }\n  ```\n\n## Sample Code (javascript)\n\n  The sample\
+    \ code below connects to the `tick` channel. The same code can be used to subscribe to other public channels, including `heartbeat`.\n\n\n  ```javascript\n  const WebSocket = require('ws');\n  const ws = new WebSocket('wss://socket.btcmarkets.net/v2');\n\n  var request = {\n    marketIds:marketIds,\n    channels: channels,\n    messageType: 'subscribe'\n  }\n\n  ws.on('open', function open() {\n    ws.send(JSON.stringify(request));\n  });\n\n  ws.on('message', function incoming(data) {\n    console.log(data);\n  });\n  ```\n"
+- name: WS_Private_Events
+  x-displayName: WebSocket Private Events
+  description: "\n## Authenticated Events\n  Receiving events about the life cycle of your orders requires sending authentication information when subscribing to events. The authentication is similar to public trading API authentication (using your API key and secret to sign  the message) when subscribing via WebSocket.\n\nBelow is sample `javascript` code with authentication:\n\n  ```javascript\n  const crypto = require('crypto');\n  const WebSocket = require('ws');\n\n  const key = 'your api key';\n  const secret = 'your api key secret';\n\n  const ws = new WebSocket('wss://socket.btcmarkets.net/v2');\n\n  const now = Date.now();\n  const strToSign =  \"/users/self/subscribe\" + \"\\n\" + now;\n  const signature = signMessage(secret, strToSign);\n\n  var request = {\n    marketIds:['BTC-AUD'],\n    channels: ['orderChange', 'heartbeat'],\n    key: key,\n    signature: signature,\n    timestamp: now,\n    messageType: 'subscribe'\n  }\n\n  ws.on('open', function open() {\n    ws.send(JSON.stringify(request));\n\
+    \  });\n\n  ws.on('message', function incoming(data) {\n    console.log(data);\n  });\n\n  function signMessage(secret, message) {\n    var key = Buffer.from(secret, 'base64');\n    var hmac = crypto.createHmac('sha512', key);\n    var signature = hmac.update(message).digest('base64');\n    return signature;\n  }\n  ```\n\n## Order Life Cycle Events\n\n  Below are events that are published for every step of order processing.\n\n\n  ### Placed\n\n  ``` javascript\n  { orderId: 79003,\n    marketId: 'BTC-AUD',\n    side: 'Bid',\n    type: 'Limit',\n    openVolume: '1',\n    status: 'Placed',\n    triggerStatus: '',\n    trades: [],\n    timestamp: '2019-04-08T20:41:19.339Z',\n    messageType: 'orderChange',\n    clientOrderId: 'abc-id'\n  }\n  ```\n\n  ### Fully Matched\n\n  ```javscript\n  { orderId: 79033,\n    marketId: 'BTC-AUD',\n    side: 'Bid',\n    type: 'Limit',\n    openVolume: '0',\n    status: 'Fully Matched',\n    triggerStatus: '',\n    timestamp: '2019-04-08T20:50:39.658Z',\n\
+    \    trades: [{\n               tradeId: 31727,\n               price: '0.1634',\n               volume: '10',\n               fee: '0.001',\n               liquidityType: 'Taker',\n               valueInQuoteAsset: '1.634'\n             }],\n    messageType: 'orderChange',\n    clientOrderId: 'abc-id'\n  }\n  ```\n\n  ### Cancelled\n  ```javscript\n  { orderId: 79003,\n    marketId: 'BTC-AUD',\n    side: 'Bid',\n    type: 'Limit',\n    openVolume: '1',\n    status: 'Cancelled',\n    triggerStatus: '',\n    trades: [],\n    timestamp: '2019-04-08T20:41:41.857Z',\n    messageType: 'orderChange',\n    clientOrderId: 'abc-id'\n  }\n  ```\n\n  ### Partially Matched\n  ```javscript\n  { orderId: 79003,\n    marketId: 'BTC-AUD',\n    side: 'Bid',\n    type: 'Limit',\n    openVolume: '1',\n    status: 'Partially Matched',\n    triggerStatus: '',\n    timestamp: '2019-04-08T20:41:41.857Z',\n    trades: [{\n               tradeId: 31927,\n               price: '0.1634',\n               volume:\
+    \ '5',\n               fee: '0.001',\n               liquidityType: 'Taker',\n               valueInQuoteAsset: '0.867'\n             }],\n    messageType: 'orderChange',\n    clientOrderId: 'abc-id'\n  }\n  ```\n\n  ### Triggered\n  This event is published when `Stop Limit` orders are triggered.\n\n  ```javscript\n  { orderId: 7903,\n    marketId: 'BTC-AUD',\n    side: 'Bid',\n    type: 'Limit',\n    openVolume: '1.2',\n    status: 'Placed',\n    triggerStatus: 'Triggered',\n    trades: [],\n    timestamp: '2019-04-08T20:41:41.857Z',\n    messageType: 'orderChange'\n  }\n```\n\n### Notes:\n\n  * `Fully Matched` and `Partially Matched` events also include a list of trades that are the result of trade execution for that specific instance.\n  * `Fully Matched` and `Partially Matched` events include the `valueInAssetQuote` attribute represents trade value that is price * amount\n  * In the case that two or more events are published by trading engine at the same time, only the last event\
+    \ is published. For instance, in the case of a `Stop` order being triggered and matched at the same time, a single event is published.\n\n\n## Fund Transfer Events\n  These events are published when deposits or withdrawals of funds are requested by a user or approved by the system (and result in balance updates). The channel name used is `fundChange`.\n\n```javscript\n{\n  fundtransferId: 276811,\n  type: 'Deposit',\n  status: 'Complete',\n  timestamp: '2019-04-16T01:38:02.931Z',\n  amount: '0.001',\n  currency: 'BTC',\n  fee: '0',\n  messageType: 'fundChange'\n}\n```\n\nNote: The status of a withdraw request is `Pending Authorization` when it's first requested and before it becomes `Complete`.\n"
+- name: fix_introduction
+  x-displayName: FIX API Overview
+  description: "\n## Introduction\nFIX (Financial Information eXchange) is a standard message protocol used to interact with trading systems for placing and canceling orders. The FIX interface is based on the FIX 4.4 specification.\n\nPlease contact the BTC Markets support team and complete the account verification process to gain secure access to the FIX interface.\n\n## FIX Interfaces\nBTC Markets offers the existing FIX order-entry interface and three new interfaces in preview. All four share the FIX 4.4 specification, session layer, authentication and data dictionary. Each preview interface has its own section below.\n\n| Interface | Purpose | Client sends | Server delivers | Endpoint |\n|---|:---|:---|:---|:---|\n| Existing FIX order entry | Place and cancel orders | Logon, order entry, cancel and status requests | Execution Reports for account activity, including orders placed via REST | tcp+ssl://fix.btcmarkets.net:443 |\n| [FIX Order Entry (Preview)](#tag/fix_order_entry) | Place\
+    \ and cancel orders with lower round-trip latency | Same as existing FIX order entry | Execution Reports only for activity on the current FIX session | Dedicated, provided during onboarding |\n| [FIX Drop Copy (Preview)](#tag/fix_drop_copy) | Receive-only copy of all account activity | Logon only (plus session-level messages) | Execution Reports for all account activity, from any origin (REST or FIX) | Dedicated, provided during onboarding |\n| [FIX Market Data (Preview)](#tag/fix_market_data) | Real-time order book data | Logon and Market Data Requests | Order book snapshots and incremental updates | Dedicated, provided during onboarding |\n\nThe connectivity, endpoint, rate limit and maintenance details below describe the existing FIX order-entry interface.\n\n### Connectivity\nClients must establish a secure connection to the FIX gateway in order to establish a session.\n\n### Endpoint \ntcp+ssl://fix.btcmarkets.net:443\n\n### Rate Limit\nAll requests are limited to 600 calls per\
+    \ 10 seconds per FIX session. An account can establish and maintain a single FIX session only.\n\n### FIX Maintenance\nThe FIX engine will go down on a daily basis at UTC time 17:00:00 for maintenance and updates.\n\nThe FIX engine will have a daily maintenance window between 5 p.m. UTC to 5:10 p.m. UTC. During this time, all sessions will be closed. Clients must establish a new connection and log on again. All sessions must have the sequence numbers reset to 1.\n\n\n## Authentication\nTo establish a FIX connection, an API key must be set up (using a similar process as required for the REST API). This will be the SenderCompID for messages sent by the Client.\n\nAuthentication will be verified at logon. The raw data element within the logon message must contain a valid signature, which will be validated by the FIX engine.\n\nThe prehash string for the signature input contains the following fields concatenated with an empty string:\n\n`seqNum + \"A\" + apiKey + timestamp`\n\n`timestamp`\
+    \ is taken from the logon message SendingTime tag (converted to epoch value in milliseconds).\n\nThe following steps demonstrate how to convert the prehash string to a signature:\n\n``` javascript\n  const msg = seqNum+'A'+apiKey+timestamp\n  var buffer = Buffer.from(apiPrivateKey, 'base64');\n  var hmac = crypto.createHmac('sha512', buffer);\n  const signature = hmac.update(preHashString).digest('base64');\n```        \n\n\n### FIX Workflow Steps\n* Connection\n* Logon and Authentication\n* Synchronizing sequence numbers\n* Place or cancel orders\n\n## FIX Client Libraries\nIf you are starting to develop your FIX client application, the following code samples can be useful. These demonstrate authentication and the ability to place and cancel orders:\n\n* Java : https://github.com/ngin-io/fix-client-java\n\n* Node : https://github.com/ngin-io/fix-client-node\n        \n## FIX Naming Convention vs REST API\nBTC Markets has implemented common messaging and naming conventions used by other\
+    \ crypto exchanges, while also ensuring compatibility with the REST API. The table below shows the FIX and corresponding REST API names.\n\n| FIX Name              | REST API       |\n|-----------------------|:---------------|\n| Symbol                | marketId       |\n| OrdType               | type           |\n| OrderQty              | amount         |\n| ClOrdID               | clientOrderId  |\n| SelfTradePrevention   | selfTrade      |\n| ExecInst              | postOnly       |\n| LeavesQty             | openAmount     |\n"
+- name: fix_messages
+  x-displayName: FIX Messages
+  description: "## Overview\nAll messages have an attribute called `MsgType` which represents the type of message to be communicated with the FIX engine.\n\n## Messages From Client to Server\n\n| Message Type               | Identifier |\n|-----------------------------|:----------|\n| Logon                       | A         |\n| Heartbeat                   | 0         |\n| Test Request               | 1         |\n| Logout                      | 5         |\n| New Single Order            | D         |\n| Cancel Order                | F         |\n| Order Status                | H         |\n| Order Mass Cancel Request   | q         |\n\n## Messages From Server to Client\n\n| Message Type               | Identifier |\n|-----------------------------|:----------|\n| Logon                       | A         |\n| Heartbeat                   | 0         |\n| Test Request               | 1         |\n| Logout                      | 5         |\n| Order Execution Report      | 8         |\n| Order\
+    \ Cancel Reject         | 9         |\n| Order Mass Cancel Report    | r         |\n| Business Message Reject     | j         |\n\n## Common Message Header\nAll messages must include the following header:\n\n| Tag | Name          | Description                                     |\n|-----|---------------|:------------------------------------------------|\n| 8   | BeginString   | Must be FIX.4.4                                 |\n| 9   | BodyLength    | Length of the message body in bytes             |\n| 35  | MsgType       | e.g. D                                          |\n| 49  | SenderCompID  | API key (similar API keys used for REST APIs)   |\n| 56  | TargetCompID  | Must be BTCM (for messages from the client)     |\n| 34  | MsgSeqNum     | FIX Sequence Number                             |\n| 52  | SendingTime   | Sender time                                     |\n| 10  | CheckSum      | FIX computed checksum                           |\n\n## Data Dictionary\n\n### Side\n\n| Value\
+    \ | Description |\n|-------|:------------|\n| 1     | BUY         |\n| 2     | SELL        |\n\n### OrdType\n\n| Value | Description |\n|-------|:------------|\n| 1     | Market      |\n| 2     | Limit       |\n| 3     | Stop        |\n| 4     | Stop Limit  |\n\n### TimeInForce\n\n| Value | Description                  |\n|-------|:-----------------------------|\n| 1     | Good Till Cancel (GTC)       |\n| 3     | Immediate or Cancel (IOC)    |\n| 4     | Fill Or Kill (FOK)           |\n\n### ExecInst\n\n| Value | Description       |\n|-------|:------------------|\n| 6     | Post only order   |\n\n### SelfTradePrevention\n\n| Value | Description          |\n|-------|:---------------------|\n| P     | Prevent self trade   |\n| A     | Allow self trade     |\n\n### ExecType\n\n| Value | Description       |\n|-------|:------------------|\n| 0     | New               |\n| 4     | Canceled          |\n| 8     | Rejected          |\n| F     | Trade             |\n| I     | Order Status   \
+    \   |\n| L     | Triggered Order   |\n\n### OrdStatus\n\n| Value | Description         |\n|-------|:--------------------|\n| 0     | New                 |\n| 1     | Partially Filled    |\n| 2     | Filled              |\n| 4     | Canceled            |\n| 8     | Rejected            |\n\n### OrdType\n\n| Value | Description   |\n|-------|:--------------|\n| 1     | Market        |\n| 2     | Limit         |\n| 3     | Stop          |\n| 4     | Stop Limit    |\n\n### OrdRejReason\n\n| Value | Description          |\n|-------|:---------------------|\n| 101   | INPUT_ERROR          |\n| 102   | AUTH_ERROR           |\n| 103   | SERVER_ERROR         |\n| 104   | THROTTLED            |\n| 105   | INSUFFICIENT_FUNDS   |\n| 99    | OTHER                |\n\n### CxlRejReason\n\n| Value | Description              |\n|-------|:-------------------------|\n| 0     | TOO_LATE_TO_CANCEL       |\n| 1     | UNKNOWN_ORDER            |\n| 3     | ORDER_IN_PENDING_CANCEL  |\n| 4     | ORDER_ALREADY_CANCELLED\
+    \  |\n| 101   | INPUT_ERROR              |\n| 102   | AUTH_ERROR               |\n| 103   | SERVER_ERROR             |\n| 104   | THROTTLED                |\n| 99    | OTHER                    |\n        \n### MassCancelRequestType\n        \n| Value | Description                   |\n|-------|:------------------------------|\n| 1     | CANCEL_ORDERS_FOR_SYMBOL      |\n| 7     | CANCEL_ALL_ORDERS             |\n        \n### MassCancelResponse\n        \n| Value | Description                   |\n|-------|:------------------------------|\n| 0     | CANCEL_REQUEST_REJECTED       |\n| I     | CANCEL_REQUEST_INITIATED      |\n        \n### MassCancelRejectReason\n        \n| Value | Description          |\n|-------|:---------------------|\n| 99    | OTHER                |\n| 101   | INPUT_ERROR          |\n| 102   | AUTH_ERROR           |\n| 103   | SERVER_ERROR         |\n        \n### CancelOrdersOnDisconnect\n\n| Value | Description                                       |\n|-------|:--------------------------------------------------|\n\
+    | 0     | No orders will be canceled on disconnect or logout |\n| 1     | Cancel all orders on disconnect only              |\n| 2     | Cancel all orders on logout only                  |\n| 3     | Cancel all orders on disconnect or logout         |\n\n### BusinessRejectReason\n\n| Value | Description |\n|-------|:------------|\n| 99    | OTHER       |\n\n\n\n## Logon (A)\n\nThe Logon message is sent by the Client to initiate a FIX session. Logon must be the first message immediately after the connection is established. Only one FIX session can be established per connection, and any additional Logon messages will be rejected. A corresponding Logon message will be returned to the Client. As with any other FIX message, the RawDataLength should precede the RawData.\n\n| Tag   | Name                       | Example Value | Description                                           |\n|-------|----------------------------|:--------------|:------------------------------------------------------|\n\
+    | 98    | EncryptMethod              | 0             | Must be set to \"0\" (None). Encryption is not supported |\n| 108   | HeartBInt                  | 30            | Must be set to \"30\"                                   |\n| 95    | RawDataLength              | ...           | Size of RawData                                       |\n| 96    | RawData                    | 8f7e...4783   | Signature                                             |\n| 35002 | CancelOrdersOnDisconnect   | 0             | [Reference](#cancelordersondisconnect)                |\n\n\nA sample pretty printed FIX Logon message looks as follows:\n\n``` javascript\n  8=FIX.4.4\\u00019=207\\u000135=A\\u000134=1\\u000149=api-key\\u000152=20220825-00:56:36.854\\u000156=BTCM\\u000198=0\\u0001108=30\\u0001141=Y\\u000195=88\\u000196=cktgFTtk69umyx2n76JWo5RspF6Z898Op1yISR60tLUgqb4RtxH0WiOCLEAuqFC38RzIofWbfXs8oywWiijabc==\\u000135002=0\\u000110=015\\u0001\n``` \n\n\n## Logout (5)\nThe logout message is sent by the Client\
+    \ or Server to close a session gracefully.\n\n## Heartbeat (0)\nHeartbeat messages can be sent by both the Client and Server if no messages have been sent for 30 seconds (or as agreed at Logon message request).\n\n| Tag  | Name       | Example Value | Description                                            |\n|------|------------|:--------------|:-------------------------------------------------------|\n| 112  | TestReqID  | TEST          | Echoed back if responding back to Test Request (1)     |\n\n## Test Request (1)\nTest messages can be sent by both the Client or Server.\n\n| Tag  | Name       | Example Value | Description                                            |\n|------|------------|:--------------|:-------------------------------------------------------|\n| 112  | TestReqID  | TEST          | Indicates a string that is expected to be echoed back in the next heartbeat |\n\n## New Single Order Request (D)\nNew single order messages can be sent by the Client to enter a new single\
+    \ order.\n\n| Tag   | Name                  | Example Value | Required Y/N | Description                                                                 |\n|-------|-----------------------|:--------------|:-------------|:----------------------------------------------------------------------------|\n| 11    | ClOrdID               | order123      | Y            | Client order ID is a string field allowing up to 64 characters: a-z, A-Z, 0-9, and standard formats like UUID |\n| 55    | Symbol                | BTC-AUD       | Y            |                                                                            |\n| 40    | OrdType               | 2             | Y            | [Reference](#ordtype)                                                       |\n| 38    | OrderQty              | 1.1           | Y            | Order quantity                                                              |\n| 44    | Price                 | 8000          | N            | Limit price - required for\
+    \ OrdType = 2 or 4                                 |\n| 99    | StopPx                | 9000          | N            | Stop price - required for OrdType = 3 or 4                                  |\n| 54    | Side                  | 1             | Y            | [Reference](#side)                                                          |\n| 59    | TimeInForce           | 1             | Y            | [Reference](#timeinforce)                                                   |\n| 18    | ExecInst              | 6             | N            | [Reference](#execinst) Defaults to not post only if not specified           |\n| 7928  | SelfTradePrevention   | P             | N            | [Reference](#selftradeprevention) Defaults to allow self trade if not specified |\n\n## Cancel Order Request (F)\nA cancel order request can be sent by the Client to cancel an existing order. Either the OrderID or the OrigClordID must be provided.\n\n| Tag  | Name        | Example Value | Description \
+    \                                   |\n|------|-------------|:--------------|:-----------------------------------------------|\n| 37   | OrderID     | 123456        | Order ID for the original order (system generated) |\n| 41   | OrigClOrdID | order123      | Original client order ID                       |\n| 11   | ClOrdID     | cxl123        | Client Order ID of this cancel request         |\n\n## Order Mass Cancel Request (q)\nOrder Mass Cancel request can be sent by the Client to cancel all open orders for a given symbol or all open orders for the client account.\n\n| Tag  | Name                   | Example Value | Required Y/N | Description                                                   |\n|------|------------------------|:--------------|:-------------|:--------------------------------------------------------------|\n| 11   | ClOrdID                | order123      | Y            | Client Order ID to uniquely identify the mass cancel request  |\n| 530  | MassCancelRequestType\
+    \  | 1             | Y            | [Reference](#masscancelrequesttype)                           |\n| 55   | Symbol                 | BTC-AUD       | N            | Identifies symbol associated with this request, required if MassCancelRequestType = 1 |\n\n## Order Status Request (H)\nThe order status request message can be sent by the Client to get the status of an order. Either the OrderID or the ClOrdID must be provided.\n\n| Tag  | Name     | Example Value | Description                                   |\n|------|----------|:--------------|:----------------------------------------------|\n| 11   | ClOrdID  | order123      | Client Order ID of the original order         |\n| 37   | OrderID  | orderxyz      | Order ID (system generated) of the original order |\n\n## Order Execution Report (8)\nThe order execution report message is sent by the Server to report the result of a request from the Client.\n\n| Tag  | Name         | Example Value | Description                           \
+    \                                    |\n|------|--------------|:--------------|:--------------------------------------------------------------------------|\n| 11   | ClOrdID      | order123      | Client order ID                                                           |\n| 37   | OrderID      | orderxyz      | Order ID (system generated)                                               |\n| 150  | ExecType     | 0             | [Reference](#exectype)                                                    |\n| 39   | OrdStatus    | 0             | [Reference](#ordstatus)                                                   |\n| 55   | Symbol       | BTC-AUD       |                                                                           |\n| 54   | Side         | 1             | [Reference](#side)                                                        |\n| 40   | OrdType      | 2             | [Reference](#ordtype)                                                     |\n| 38   | OrderQty    \
+    \ | 1.1           | Original order quantity. Only available for ExecType = I                   |\n| 44   | Price        | 8000          | Only available for ExecType = I                                           |\n| 32   | LastQty      | 0.2           | Last quantity traded. Only available for ExecType = F                      |\n| 31   | LastPx       | 100           | Last price traded. Only available for ExecType = F                         |\n| 17   | ExecID       | 98765         | Execution/Trade ID. Only available for ExecType = F                        |\n| 151  | LeavesQty    | 10            | Open order quantity                                                        |\n| 103  | OrdRejReason | 101           | [Reference](#ordrejreason) Only available for ExecType = 8                  |\n| 58   | Text         | Invalid market id | Free format reject reason text. Only available for ExecType = 8         |\n\n\n## Order Cancel Reject (9)\nThe order cancel reject message can be sent\
+    \ by the Server to reject an order cancelation request from the Client. These messages can be sent if the order is already canceled, filled, or does not exist in the system.\n\n| Tag  | Name              | Example Value | Description                                                           |\n|------|-------------------|:--------------|:----------------------------------------------------------------------|\n| 37   | OrderID           | 123456        | Order ID for the original order (system generated)                    |\n| 41   | OrigClOrdID       | order123      | Original client order ID                                              |\n| 39   | OrdStatus         | 8             | Fixed value                                                           |\n| 102  | CxlRejReason      | 0             | [Reference](#cxlrejreason)                                            |\n| 434  | CxlRejResponseTo  | 1             | Response to the cancel request; Fixed value                        \
+    \   |\n\n## Order Mass Cancel Report (r)\nThe order mass cancel report is sent by the Server in response to an Order Mass Cancel request. There can be situations where a previous order is not cancelled due to the asynchronous nature of the trading system. We strongly advise keeping track of individual order updates to confirm the cancellations.  \n\n| Tag  | Name                     | Example Value | Description                                                                 |\n|------|--------------------------|:--------------|:----------------------------------------------------------------------------|\n| 11   | ClOrdID                  | 123456        | Client Order ID for the mass cancel request                                 |\n| 530  | MassCancelRequestType    | 1             | [Reference](#masscancelrequesttype)                                         |\n| 531  | Mass Cancel Response     | I             | [Reference](#masscancelresponse)                                     \
+    \       |\n| 532  | MassCancelRejectReason   | 102           | [Reference](#masscancelrejectreason), only available if Mass Cancel Response = '0' |\n\n## Business Message Reject (j)\nThe business message reject is sent by the Server when the message fulfils session-level rules, but gets rejected at the application-level. Note that standard FIX session-level reject messages (message type = '3') will be sent when incoming message violates standard FIX session rules  \n\n| Tag  | Name                  | Example Value | Description                                                                  |\n|------|-----------------------|:--------------|:-----------------------------------------------------------------------------|\n| 45   | RefSeqNum             | 102           | Message sequence num of rejected message                                     |\n| 372  | RefMsgType            | D             | Message Type of rejected message                                             |\n| 380  |\
+    \ BusinessRejectReason  | 99            | [Reference](#businessrejectreason)                                           |\n| 58   | Text                  | Throttle limit exceeded (300 in 10000ms) | Indicates msgs per millisecond allowed before throttle kicks in |\n"
+- name: fix_order_entry
+  x-displayName: FIX Order Entry (Preview)
+  description: '## Overview
+
+    FIX Order Entry is a new, low-latency order-entry interface in the BTC Markets FIX offering. It is built for clients that place and cancel orders over FIX and want the lowest possible round-trip time between sending a request and receiving its Execution Report.
+
+
+    FIX Order Entry uses the **same FIX 4.4 specification, messages and data dictionary** as the existing FIX order-entry interface documented under **FIX Messages**. It accepts the same requests and returns the same reports with identical field encodings, so if you already integrate with BTC Markets FIX for order entry there are no codec or message-parsing changes to make.
+
+
+    > FIX Order Entry is currently in preview. Please contact the BTC Markets support team to request access and to receive the order-entry endpoint.
+
+
+    ### Connectivity
+
+    FIX Order Entry runs on a dedicated endpoint, separate from the existing FIX gateway, Drop Copy and Market Data. The support team will provide the endpoint during onboarding.
+
+
+    ### Authentication
+
+    Authentication is identical to the existing order-entry interface: the same API key is used as the `SenderCompID`, and the Logon (`A`) message must carry the same signature described under **FIX API Overview**.
+
+
+    ### FIX Dictionary
+
+    The FIX 4.4 data dictionary for FIX Order Entry is published at [https://github.com/BTCMarkets/fix-v2-codecs](https://github.com/BTCMarkets/fix-v2-codecs).
+
+
+    ## How FIX Order Entry Differs From the Existing FIX Interface
+
+    The two interfaces are the same on the wire. The differences are latency and the scope of the reports a session receives.
+
+
+    ### Lower latency
+
+    FIX Order Entry is optimised for latency and delivers a lower overall round trip, from the client''s request to the corresponding Execution Report, than the existing FIX interface.
+
+
+    ### Session-scoped reports
+
+    A FIX Order Entry session only receives Execution Reports and cancellation messages for orders placed and cancelled **on that same FIX session**. Activity from other channels is not reported. For example, orders placed or cancelled via the REST API, or via a different FIX session, and the trades resulting from them, are not delivered to the session.
+
+
+    To receive all of an account''s order and trade activity regardless of where it originated, use [FIX Drop Copy](#tag/fix_drop_copy) alongside FIX Order Entry.
+
+
+    ## Messages
+
+    FIX Order Entry supports the full message set documented under **FIX Messages**: Logon (`A`), Heartbeat (`0`), Test Request (`1`), Logout (`5`), New Single Order (`D`), Cancel Order (`F`), Order Status (`H`) and Order Mass Cancel Request (`q`) from the client; and Order Execution Report (`8`), Order Cancel Reject (`9`), Order Mass Cancel Report (`r`) and Business Message Reject (`j`) from the server.
+
+
+    Refer to the **FIX Messages** section for the full field-level definitions of each message and the shared data dictionary. They apply unchanged to FIX Order Entry.
+
+    '
+- name: fix_drop_copy
+  x-displayName: FIX Drop Copy (Preview)
+  description: '## Overview
+
+    FIX Drop Copy is a new, receive-only addition to the BTC Markets FIX offering. It streams a real-time copy of an account''s order and trade activity over a FIX session, so you can monitor fills, cancellations and order state without placing any orders yourself.
+
+
+    Drop Copy uses the **same FIX 4.4 specification, message formats and data dictionary** as the FIX order-entry interfaces, documented under **FIX Messages**. Execution Reports (`8`), Order Cancel Rejects (`9`) and every field encoding are identical, so if you already integrate with BTC Markets FIX for order entry there are no codec or message-parsing changes to make.
+
+
+    > FIX Drop Copy is currently in preview. Please contact the BTC Markets support team to request access and to receive the drop-copy endpoint.
+
+
+    ### Connectivity
+
+    Drop Copy runs on a dedicated endpoint, separate from the order-entry gateways. The support team will provide the endpoint during onboarding.
+
+
+    ### Authentication
+
+    Authentication is identical to the order-entry interface: the same API key is used as the `SenderCompID`, and the Logon (`A`) message must carry the same signature described under **FIX API Overview**. The signed Logon is the only message a client needs to send.
+
+
+    ### FIX Dictionary
+
+    The FIX 4.4 data dictionary for FIX Drop Copy is published at [https://github.com/BTCMarkets/fix-v2-codecs](https://github.com/BTCMarkets/fix-v2-codecs).
+
+
+    ## How Drop Copy Works
+
+    Drop Copy is receive-only, and it reports all of an account''s activity regardless of where it originated.
+
+
+    ### The client only sends a Logon
+
+    A Drop Copy session is receive-only. After a successful Logon, the client is not expected to send any application messages — only the standard session-level messages (Heartbeat `0`, Test Request `1`, Logout `5`) are exchanged to keep the session alive.
+
+
+    Order-entry application messages are not accepted on a Drop Copy session. Any attempt to enter or cancel orders — New Single Order (`D`), Cancel Order (`F`), Order Mass Cancel Request (`q`) or Order Status (`H`) — is rejected (for example, a New Single Order is answered with a rejected Execution Report). Use the FIX order-entry interface or the REST API to manage orders.
+
+
+    ### Scope of delivered messages
+
+    Drop Copy delivers **all account-level order, cancellation and trade activity, regardless of where it originated**. Orders and cancellations submitted via the REST API or any FIX session are all reported on the Drop Copy session. Trade Execution Reports are delivered even when the fill is against an order that has been resting in the orderbook since well before the Drop Copy session connected.
+
+
+    ## Messages
+
+    Drop Copy uses the same message definitions documented under **FIX Messages**. In practice a Drop Copy session only exchanges the following.
+
+
+    ### Messages From Client to Server
+
+    | Message Type | Identifier |
+
+    |--------------|:----------|
+
+    | Logon        | A         |
+
+    | Heartbeat    | 0         |
+
+    | Test Request| 1         |
+
+    | Logout       | 5         |
+
+
+    ### Messages From Server to Client
+
+    | Message Type            | Identifier |
+
+    |-------------------------|:----------|
+
+    | Logon                   | A         |
+
+    | Heartbeat               | 0         |
+
+    | Test Request           | 1         |
+
+    | Logout                  | 5         |
+
+    | Order Execution Report  | 8         |
+
+    | Order Cancel Reject     | 9         |
+
+    | Business Message Reject | j         |
+
+
+    Refer to the **FIX Messages** section for the full field-level definitions of each message and the shared data dictionary — they apply unchanged to Drop Copy.
+
+    '
+- name: fix_market_data
+  x-displayName: FIX Market Data (Preview)
+  description: '## Overview
+
+    FIX Market Data is a new, subscription-based addition to the BTC Markets FIX offering. It streams real-time order book data for the markets you subscribe to over a FIX session, so you can maintain a live local copy of the book without polling the REST API. Like Drop Copy, it is receive-oriented: after Logon the only application message a client sends is the subscription request.
+
+
+    Market Data uses the **same FIX 4.4 specification, session layer and data dictionary** as the order-entry and Drop Copy interfaces. If you already integrate with BTC Markets FIX, the session, Logon and authentication are unchanged — only the market-data application messages described below are added.
+
+
+    > FIX Market Data is currently in preview. Please contact the BTC Markets support team to request access and to receive the market-data endpoint.
+
+
+    ### Connectivity
+
+    Market Data runs on a dedicated endpoint, separate from the order-entry and Drop Copy gateways. The support team will provide the endpoint during onboarding.
+
+
+    ### Authentication
+
+    Authentication is identical to the order-entry interface: the same API key is used as the `SenderCompID`, and the Logon (`A`) message must carry the same signature described under **FIX API Overview**.
+
+
+    ### FIX Dictionary
+
+    The machine-readable FIX 4.4 data dictionary covering these market-data messages is published at [https://github.com/BTCMarkets/fix-v2-codecs](https://github.com/BTCMarkets/fix-v2-codecs). The tables below describe the same messages field by field.
+
+
+    ## How Market Data Works
+
+    A market-data session follows a simple subscribe → snapshot → updates flow:
+
+
+    1. **Subscribe.** After Logon, the client sends a Market Data Request (`V`) naming one or more symbols with a `SubscriptionRequestType` of `1` (Snapshot + Updates). Each request carries a client-assigned `MDReqID` that is echoed back on every response for that subscription.
+
+    2. **Snapshot.** For each subscribed symbol the server sends one Market Data Snapshot / Full Refresh (`W`) — the complete current order book, both sides.
+
+    3. **Updates.** The server then streams Market Data Incremental Refresh (`X`) messages carrying only the price levels that changed since the snapshot. Apply these to the book delivered in step 2 to keep a live copy. Both the snapshot (`W`) and each update (`X`) carry a book sequence in `RptSeq` (`83`); apply only updates whose `RptSeq` is greater than the snapshot''s to stitch the live book onto it (see [Book sequence](#book-sequence)).
+
+    4. **Unsubscribe.** To stop a stream, the client sends a Market Data Request (`V`) with `SubscriptionRequestType` `2` (Disable previous snapshot / Unsubscribe) for the same symbol(s). The server identifies the streams to terminate by the `Symbol`(s) in `NoRelatedSym`, not by `MDReqID`. A valid `MDReqID` is still required on the request, but it does not need to match the `MDReqID` used on the original subscribe.
+
+
+    If a request cannot be satisfied (unknown symbol, unsupported subscription type, and so on) the server replies with a Market Data Request Reject (`Y`).
+
+
+    ### Book sides
+
+    Book side is not client-selectable — every snapshot and update carries both bids (`MDEntryType` `0`) and offers (`MDEntryType` `1`). There is no per-side subscription.
+
+
+    ### Incremental updates and the update action
+
+    `MDUpdateAction` (`279`) is the authoritative instruction for how to apply each level — key your book update on it, not on the size:
+
+
+    - **`CHANGE` (`1`)** — upsert the level: insert it at that price if you have none, otherwise replace the size at that price. Every addition and size change is delivered as `CHANGE`. The feed does not distinguish a brand-new level from a changed one, so `NEW` (`0`), although defined by the FIX dictionary, is not emitted on this interface.
+
+    - **`DELETE` (`2`)** — remove the level at that price. On a `DELETE` the accompanying `MDEntrySize` is `0`, but treat `MDUpdateAction` — not the size — as the signal to remove the level.
+
+
+    ### Book checksum
+
+    Every Incremental Refresh (`X`) carries a `BookChecksum` (`7929`): a value computed over the resulting order book that a client can recompute against its own reconstructed book to confirm the two are in sync. Snapshots (`W`) are complete and carry no checksum. The exact checksum algorithm will be documented separately.
+
+
+    ### Book sequence
+
+    Every Snapshot (`W`) and Incremental Refresh (`X`) carries a book sequence in `RptSeq` (`83`) — a value that increases monotonically per order book as its state advances. Use it to align the two message types:
+
+
+    - The `RptSeq` on a Snapshot (`W`) is the sequence the book was captured at.
+
+    - The `RptSeq` on an Incremental Refresh (`X`) is the sequence of the book after that update is applied.
+
+    - Apply an `X` only when its `RptSeq` is greater than the last sequence you have applied for that book; discard any `X` whose `RptSeq` is less than or equal to the snapshot''s (it is already reflected in the snapshot).
+
+
+    `RptSeq` is scoped to a single order book (see the [Incremental Refresh scope note](#market-data-incremental-refresh-x)); track it per symbol. The value increases monotonically but is **not** a contiguous, one-per-message counter — it advances by varying amounts. Use it only to order and align updates against the snapshot. It cannot be used to detect message loss by expecting consecutive values, unlike venues that increment `RptSeq` by one per message.
+
+
+    > `RptSeq` (`83`) is a 64-bit value. Although FIX conventionally types tag 83 as a 32-bit sequence number, this feed can emit values beyond the 32-bit range — parse it as a 64-bit integer.
+
+
+    > Trade prints (`MDEntryType` `2`) are reserved for a future market-data stream and are not delivered on this interface yet. Today only bid/offer book entries are streamed.
+
+
+    ## Messages
+
+    Market Data adds the following application messages to the shared FIX 4.4 message set.
+
+
+    ### Messages From Client to Server
+
+    | Message Type        | Identifier |
+
+    |---------------------|:----------|
+
+    | Logon               | A         |
+
+    | Heartbeat           | 0         |
+
+    | Test Request       | 1         |
+
+    | Logout              | 5         |
+
+    | Market Data Request | V         |
+
+
+    ### Messages From Server to Client
+
+    | Message Type                        | Identifier |
+
+    |-------------------------------------|:----------|
+
+    | Logon                               | A         |
+
+    | Heartbeat                           | 0         |
+
+    | Test Request                       | 1         |
+
+    | Logout                              | 5         |
+
+    | Market Data Snapshot / Full Refresh | W         |
+
+    | Market Data Incremental Refresh     | X         |
+
+    | Market Data Request Reject          | Y         |
+
+    | Business Message Reject             | j         |
+
+
+    ## Market Data Request (V)
+
+    Sent by the client to subscribe to (or unsubscribe from) the order book for one or more symbols.
+
+
+    | Tag | Name                     | Example Value | Required Y/N | Description                                          |
+
+    |-----|--------------------------|:--------------|:-------------|:-----------------------------------------------------|
+
+    | 262 | MDReqID                  | req-1         | Y            | Client-assigned request ID, echoed on all responses. On an unsubscribe (`SubscriptionRequestType` `2`) it is required but need not match the original subscribe — streams are identified by `Symbol` |
+
+    | 263 | SubscriptionRequestType  | 1             | Y            | [Reference](#subscriptionrequesttype)                |
+
+    | 146 | NoRelatedSym             | 1             | Y            | Number of symbols in the request                     |
+
+    | 55  | Symbol                   | BTC-AUD       | Y            | Repeated once per `NoRelatedSym` entry               |
+
+
+    ## Market Data Snapshot / Full Refresh (W)
+
+    Sent by the server, once per subscribed symbol, immediately after a subscription. Carries the complete current order book for the symbol. `NoMDEntries` (`268`) is a repeating group; the per-level fields below repeat once per level.
+
+
+    | Tag | Name        | Example Value | Description                                    |
+
+    |-----|-------------|:--------------|:-----------------------------------------------|
+
+    | 262 | MDReqID     | req-1         | Echoes the subscription''s request ID           |
+
+    | 55  | Symbol      | BTC-AUD       |                                                |
+
+    | 83  | RptSeq      | 1789795809485000 | Book sequence this snapshot was captured at. [See above](#book-sequence) |
+
+    | 268 | NoMDEntries | 50            | Number of book levels that follow              |
+
+    | 269 | MDEntryType | 0             | Per level. [Reference](#mdentrytype)           |
+
+    | 270 | MDEntryPx   | 61179.8       | Per level. Price                               |
+
+    | 271 | MDEntrySize | 1.2           | Per level. Size at the price level             |
+
+    | 273 | MDEntryTime | 20:54:27.632  | Per level. Book timestamp (optional)           |
+
+
+    ## Market Data Incremental Refresh (X)
+
+    Sent by the server to deliver the levels that changed since the snapshot. Apply each entry to your local book using its `MDUpdateAction`. `NoMDEntries` (`268`) is a repeating group; the per-level fields below repeat once per changed level.
+
+
+    Each `X` message delivers updates for a single order book. All levels within it share the same `Symbol` (`55`), and the root `BookChecksum` (`7929`) is that symbol''s book checksum after the update is applied. When subscribed to multiple symbols, you receive a separate `X` per symbol — scope your checksum verification to the book identified by the entries'' `Symbol`.
+
+
+    | Tag  | Name           | Example Value | Description                                                  |
+
+    |------|----------------|:--------------|:-------------------------------------------------------------|
+
+    | 262  | MDReqID        | req-1         | Echoes the subscription''s request ID                         |
+
+    | 7929 | BookChecksum   | 2855026665    | Checksum of the resulting book. [See above](#book-checksum)  |
+
+    | 83   | RptSeq         | 1789795809485000 | Book sequence after this update is applied. [See above](#book-sequence) |
+
+    | 268  | NoMDEntries    | 2             | Number of changed levels that follow                         |
+
+    | 279  | MDUpdateAction | 1             | Per level. [Reference](#mdupdateaction)                      |
+
+    | 269  | MDEntryType    | 0             | Per level. [Reference](#mdentrytype)                         |
+
+    | 55   | Symbol         | BTC-AUD       | Per level                                                    |
+
+    | 270  | MDEntryPx      | 61179.8       | Per level. Price                                             |
+
+    | 271  | MDEntrySize    | 1.2           | Per level. New size at the level; `0` accompanies a `DELETE` — see [MDUpdateAction](#mdupdateaction) |
+
+    | 273  | MDEntryTime    | 20:54:27.632  | Per level. Update timestamp (optional)                       |
+
+
+    ## Market Data Request Reject (Y)
+
+    Sent by the server when a Market Data Request cannot be satisfied.
+
+
+    | Tag | Name                   | Example Value  | Description                          |
+
+    |-----|------------------------|:---------------|:-------------------------------------|
+
+    | 262 | MDReqID                | req-1          | Echoes the rejected request''s ID     |
+
+    | 281 | MDRequestRejectReason  | 0              | [Reference](#mdrequestrejectreason)  |
+
+    | 58  | Text                   | Unknown symbol | Free-format reject reason text       |
+
+
+    ## Data Dictionary
+
+
+    ### SubscriptionRequestType
+
+
+    Only `1` (subscribe) and `2` (unsubscribe) are supported. A one-off book snapshot is served by the REST orderbook endpoint rather than over FIX.
+
+
+    | Value | Description                                                                 |
+
+    |-------|:----------------------------------------------------------------------------|
+
+    | 0     | Snapshot only — not supported; rejected with `UNSUPPORTED_SUBSCRIPTION_REQUESTTYPE` |
+
+    | 1     | Snapshot + Updates (subscribe)                                              |
+
+    | 2     | Disable previous snapshot (unsubscribe)                                     |
+
+
+    ### MDEntryType
+
+
+    | Value | Description                     |
+
+    |-------|:--------------------------------|
+
+    | 0     | Bid                             |
+
+    | 1     | Offer                           |
+
+    | 2     | Trade (reserved for future use) |
+
+
+    ### MDUpdateAction
+
+
+    | Value | Description                                                       |
+
+    |-------|:------------------------------------------------------------------|
+
+    | 0     | New — defined by FIX; not emitted on this feed (additions arrive as Change) |
+
+    | 1     | Change (upsert)                                                   |
+
+    | 2     | Delete                                                            |
+
+
+    ### MDRequestRejectReason
+
+
+    | Value | Description                            |
+
+    |-------|:---------------------------------------|
+
+    | 0     | Unknown symbol                         |
+
+    | 3     | Auth error                             |
+
+    | 4     | Unsupported subscription request type  |
+
+    | 8     | Unsupported MD entry type              |
+
+    | A     | Input error                            |
+
+    | B     | System error                           |
+
+
+    Refer to the **FIX Messages** section for the shared session-level messages (Logon, Heartbeat, Test Request, Logout), Business Message Reject (`j`), and the common message header — they apply unchanged to Market Data.
+
+    '
+x-tagGroups:
+- name: Order Matching
+  tags:
+  - order_status
+  - OrderTypes
+  - StopOrders
+  - ClientOrderId
+  - Timeinforce
+  - TargetAmount
+  - PostOnly
+  - SelfTrade
+  - market_status
+- name: APIs
+  tags:
+  - Market Data APIs
+  - Order Placement APIs
+  - Batch Order APIs
+  - Trade APIs
+  - Fund Management APIs
+  - Account APIs
+  - Report APIs
+  - Misc APIs
+  - ErrorCodes
+- name: WebSocket Feed
+  tags:
+  - WS_Overview
+  - WS_Public_Events
+  - WS_Private_Events
+- name: FIX API
+  tags:
+  - fix_introduction
+  - fix_order_entry
+  - fix_drop_copy
+  - fix_market_data
+  - fix_messages
+paths:
+  /v3/orders:
+    post:
+      tags:
+      - Order Placement APIs
+      summary: Place new Order
+      description: This API is used to place a new order. Some of the parameters are mandatory as specified below. The right panel presents the default response with primary attributes. You can also select from the drop down to see an order response with all possible order attributes.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+              - description: Place new order
+                title: New order request
+              - $ref: '#/components/schemas/PlaceOrderRequest'
+            examples:
+              bid:
+                summary: new order example
+                value:
+                  marketId: BTC-AUD
+                  price: '100.12'
+                  amount: '1.034'
+                  type: Limit
+                  side: Bid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+              examples:
+                basic:
+                  $ref: '#/components/examples/BasicOrderExample'
+                allAttributes:
+                  $ref: '#/components/examples/AllOrderExample'
+        '400':
+          content:
+            application/json:
+              examples:
+                missingParam:
+                  summary: missing clientOrderId
+                  value:
+                    code: InvalidMarketId
+                    message: invalid marketId
+        '401':
+          description: Not Authorized
+        '403':
+          description: Forbidden
+      x-code-samples:
+      - lang: Javascript
+        source: "const crypto = require('crypto');\nconst https = require('https');\n\nconst apiKey = \"add api key here\";\nconst privateKey = \"add private key here\";\n\nconst placeOrderDataObj = {marketId: 'XRP-AUD',price: '0.34', amount:\"1.0\", side: \"Bid\", type: \"Limit\" };\nconst data = JSON.stringify(placeOrderDataObj);\nconst path = '/v3/orders';\n\nconst now = Date.now();\nconst message =  \"POST\" + path + now + data;\n\nvar buffer = Buffer.from(privateKey, 'base64');\nvar hmac = crypto.createHmac('sha512', buffer);\nconst signature = hmac.update(message).digest('base64');\n\nconst headers = {\n\t\t\"Accept\": \"application/json\",\n\t\t'Content-Length': Buffer.byteLength(data),\n\t\t\"Content-Type\": \"application/json\",\n\t\t\"BM-AUTH-APIKEY\": apiKey,\n\t\t\"BM-AUTH-TIMESTAMP\": now,\n\t\t\"BM-AUTH-SIGNATURE\": signature\n};\nvar postOptions = {host: \"api.btcmarkets.net\", path: path, method: 'POST', headers: headers};\nvar postReq = https.request(postOptions, function(res)\
+          \ {\n\tres.on('data', function (chunk) {\n\t\tconsole.log('Http Response Code: ' + res.statusCode);\n\t\tconsole.log('Response: ' + chunk);\n\t});\n});\n\npostReq.write(data);\npostReq.end();\n"
+    get:
+      summary: List Orders
+      description: Returns an array of historical orders or open orders only. All query string parameters are optional, so by default and when no query parameter is provided, this API retrieves open orders only for all markets. This API supports pagination only when retrieving all orders `status=all`. When sending using `status=open`, all open orders are returned and with no pagination.
+      tags:
+      - Order Placement APIs
+      operationId: listOrders
+      parameters:
+      - name: marketId
+        in: query
+        required: false
+        description: by default orders for all markets are returned. Specify a marketId for filtering.
+        schema:
+          type: string
+        example: ETH-AUD
+      - name: before
+        in: query
+        required: false
+        description: This is part of the pagination parameters.
+        schema:
+          type: integer
+          format: int64
+        example: 78234976
+      - name: after
+        in: query
+        required: false
+        description: This is part of the pagination parameters.
+        schema:
+          type: integer
+          format: int64
+        example: 78234876
+      - name: limit
+        in: query
+        description: This is part of the pagination parameters.
+        required: false
+        schema:
+          type: integer
+          format: int32
+        example: 50
+      - name: status
+        in: query
+        description: returns orders with open status or all statuses
+        required: false
+        schema:
+          type: string
+          enum:
+          - open
+          - all
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                basic:
+                  $ref: '#/components/examples/BasicOrderExample'
+    delete:
+      summary: Cancel Open Orders
+      tags:
+      - Order Placement APIs
+      operationId: cancelOrders
+      description: Cancels all open orders for all markets or optionally for a given list of marketIds only.
+      parameters:
+      - name: marketId
+        in: query
+        required: false
+        description: restricts cancellation for those given marketIds only. Can be provided in the form of `marketId=BTC-AUD&marketId=ETH-AUD`
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CancelOrderResponse'
+              examples:
+                basic:
+                  $ref: '#/components/examples/CancelledOrderExamples'
+  /v3/orders/{id}:
+    get:
+      tags:
+      - Order Placement APIs
+      operationId: getOrderById
+      summary: Get an Order
+      description: Returns an order by using either the exchange `orderId` or `clientOrderId`.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                basic:
+                  $ref: '#/components/examples/BasicOrderExample'
+        '404':
+          description: Not found
+    delete:
+      summary: Cancel an Order
+      tags:
+      - Order Placement APIs
+      operationId: cancelOrder
+      description: Cancels a single order. This API returns an HTTP error `400` if the order is already canceled, matched, or partially canceled.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CancelOrderResponse'
+              examples:
+                basic:
+                  $ref: '#/components/examples/CancelledOrderExample'
+    put:
+      tags:
+      - Order Placement APIs
+      operationId: replaceOrderById
+      summary: Replace an Order
+      description: 'This API combines both cancel and placement operations in a single API call.
+
+
+        Upon calling this API, the system attempts to cancel the existing order. If the cancel operation is successful, then a new order is placed with exactly the same attributes (e.g., type, marketId, etc.) except for the `price` and `amount` that are provided as input to this API.
+
+
+        Note:
+
+        * The underlying actions of canceling an existing order and placing a new order at this stage are not atomic due to the asynchronous nature of the system. 
+
+        This means that although we make our best effort to make sure the existing order is canceled successfully before placing a new order, there can be situations where the existing order may still execute and the new order is also placed (in particular, this can happen in situations when the market moves quickly in a few milliseconds).
+
+        * For simplicity''s sake, this API returns all attributes of the new order including new orderId (and new clientOrderId, if provided).
+
+        * This API also returns all possible errors that may occur during normal cancellation and order placement.
+
+        '
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+              - description: Replace an order
+                title: Replace order request
+              - $ref: '#/components/schemas/ReplaceOrderRequest'
+            examples:
+              bid:
+                summary: replace order example
+                value:
+                  price: '100.12'
+                  amount: '1.034'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+              examples:
+                basic:
+                  $ref: '#/components/examples/BasicOrderExample'
+                allAttributes:
+                  $ref: '#/components/examples/AllOrderExample'
+        '400':
+          content:
+            application/json:
+              examples:
+                missingParam:
+                  summary: missing clientOrderId
+                  value:
+                    code: OrderStatusIsFinal
+                    message: Order cancellation is not allowed
+  /v3/batchorders:
+    post:
+      tags:
+      - Batch Order APIs
+      summary: Place and Cancel Orders
+      description: "\nUse this API to place multiple new orders or cancel existing ones via a single request. The request for batch processing is an array of items, and each item contains instructions for an order placement and a cancellation.\nThere are restrictions on the number of items in a batch (currently set to 10), so a batch can contain up to four items in any form that is needed. For instance, it can contain four placements (hence four items in the array), four cancellations, or an array of two items with two order placements and two cancellations.\n\nBatch operations are only containers for multiple requests, so each individual request is handled separately from the rest of the requests in the batch.\n\nOnce all items in the batch are processed, a single response containing orders added and orders canceled is returned along with an attribute called `unprocessedRequests` that is an array of any item in the batch that can't be processed.\n\nOne major difference between using batch\
+        \ requests and individual requests is the approach to error handling. In the case of using individual requests, if the request is invalid (e.g. invalid price), then an HTTP 400 error is returned.\nHowever, when using batch requests (even with a single item) you will receive an HTTP code of 200 and you should parse the `unprocessedRequests` inside the response body to determine if there are any errors processing individual requests.\n\nThere are cases where the entire batch request is considered invalid and an HTTP error `400` is returned (e.g., batch size exceeds the limit). Therefore, when handling batch requests, your client needs to handle HTTP status codes as well as error messages inside the response body.\n\nAnother difference is that you must provide `clientOrderId` when placing orders in batch. This allows items inside a batch request to be tracked and processed accurately.\nWhen canceling orders, you can either use `orderId` or `clientOrderId` within the request. `clientOrderId`\
+        \ is only mandatory for creating new orders.\n\nA `requestId` that appears inside the `unprocessedRequests` represents whatever ID was used to identify an order (e.g., clientOrderId or orderId).\n\nOne sample use case of batch processing is simulating the update order in a single HTTP call that is canceling an existing order and then creating a new order. In order to achieve this outcome, use the following request sample:\n\n``` json\n [\n   {\n     \"cancelOrder\": {\n       \"clientOrderId\": \"27\"\n     }\n   },\n   {\n     \"placeOrder\": {\n       \"marketId\": \"XRP-AUD\",\n       \"side\": \"Bid\",\n       \"type\": \"Limit\",\n       \"price\": \"0.22\",\n       \"amount\": \"0.26\",\n       \"clientOrderId\": \"28\"\n     }\n   }\n ]\n```\nIn the above sample, the existing order with ID `27` is canceled and a new order with ID 28 will be created.\n\nYou can still take advantage of `/3/batchorders{ids}` in order to cancel orders and use this API for placing orders only.\n"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+              - description: Place new orders or cancel existing ones
+                title: Batch order request
+              - $ref: '#/components/schemas/BatchOrderRequests'
+            examples:
+              bid:
+                $ref: '#/components/examples/BatchOrderRequestExample'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+              examples:
+                basic:
+                  $ref: '#/components/examples/BatchOrderProcessingWithErrorExample'
+                allErrors:
+                  $ref: '#/components/examples/BatchOrderProcessingAllErrorsExample'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              examples:
+                missingParam:
+                  summary: missing clientOrderId
+                  value:
+                    code: InvalidClientOrderId
+                    message: a unique client order id is required for batch order placement
+  /v3/batchorders/{ids}:
+    get:
+      tags:
+      - Batch Order APIs
+      operationId: getOrderByIds
+      summary: Get Orders by ID
+      description: 'Retrieves a batch of orders by using either the exchange `orderId` or `clientOrderId`.
+
+        You can specify a comma separated list of IDs with `/v3/batchorders/abc,dbc,3a,4`.'
+      parameters:
+      - name: ids
+        in: path
+        required: true
+        schema:
+          type: string
+          description: comma delimited list of ids
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                basic:
+                  $ref: '#/components/examples/BatchOrderGetExample'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              examples:
+                missingParam:
+                  summary: missing clientOrderId
+                  value:
+                    code: InvalidBatchRequest
+                    message: duplicate items found in the batch request
+    delete:
+      tags:
+      - Batch Order APIs
+      summary: Cancel Orders by ID
+      description: This API can be used to cancel a list of orders specified by ID in a single request e.g. `/v3/batchorders/6,7,1`.
+      parameters:
+      - name: ids
+        in: path
+        required: true
+        schema:
+          type: string
+          description: comma delimited list of ids
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                basic:
+                  $ref: '#/components/examples/BatchOrderCancelExample'
+  /v3/trades:
+    get:
+      tags:
+      - Trade APIs
+      operationId: getTrades
+      summary: List Trades
+      description: Retrieves trades and optionally filters by marketId or orderId/clientOrderId. The default behavior when no query parameter is specified is to return your most recent trades for all orders and markets. When a valid order ID is provided, all trades for the order are returned. Providing `marketId` also filters trades. Mixing `orderId` and `marketId` parameters is not supported.
+      parameters:
+      - name: marketId
+        in: query
+        required: false
+        schema:
+          type: string
+          description: optionally filter trades by marketId (e.g. XRP-AUD)
+      - name: orderId
+        in: query
+        required: false
+        schema:
+          type: string
+          description: optionally list all trades for a single order
+      - name: before
+        in: query
+        required: false
+        description: This is part of the pagination parameters.
+        schema:
+          type: integer
+          format: int64
+        example: 78234976
+      - name: after
+        in: query
+        required: false
+        description: This is part of the pagination parameters.
+        schema:
+          type: integer
+          format: int64
+        example: 78234876
+      - name: limit
+        in: query
+        description: This is part of the pagination parameters.
+        required: false
+        schema:
+          type: integer
+          format: int32
+        example: 10
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                basic:
+                  $ref: '#/components/examples/TradeListExample'
+  /v3/trades/{id}:
+    get:
+      tags:
+      - Trade APIs
+      operationId: getTradeById
+      summary: Get Trade by ID
+      description: Retrieves a trade by ID.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+  /v3/markets:
+    get:
+      tags:
+      - Market Data APIs
+      summary: List Active Markets
+      description: "Retrieves list of active markets including configuration for each market.\n\n* `marketId`: marketId is used across the system\n* `baseAssetName`: the asset being purchased or sold. In the case of `ETH-AUD`, the base asset is `ETH`.\n* `quoteAssetName`: the asset that is used to price the base asset. In the case of `ETH-AUD`, the quote asset is `AUD`.\n* `minOrderAmount`: minimum amount for an order\n* `maxOrderAmount`: maximum amount for an order\n* `amountDecimals`: maximum number of decimal places can be used for amounts\n* `priceDecimals`: represents number of decimal places can be used for price when placing orders. For instance, for `BTC-AUD` market, priceDecimals is 2 meaning that a price of `100.12` is valid but `100.123` is not.\n* `status`: current status of market, can be Online, Offline, Post Only, Limit Only, or Cancel Only  \n"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                basic:
+                  $ref: '#/components/examples/MarketsExample'
+  /v3/markets/{marketId}/ticker:
+    get:
+      tags:
+      - Market Data APIs
+      summary: Get Market Ticker
+      description: "Retrieves ticker for the given marketId.\n* `marketId`: marketId is used across the system\n* `bestBid`: best buy order price\n* `bestAsk`: best sell order price\n* `lastPrice`: price of the last trade\n* `volume24h`: represents total trading volume over the past 24 hours for the given market\n* `volumeQte24h`: total volume over the past 24 hours in quote asset\n* `price24h`: price change (difference between the first and last price over 24 hours)\n* `pricePct24h`: percentage of price change \n* `low24`: lowest price over the past 24 hours\n* `high24`: highest price over the past 24 hours\n* `timestamp`: timestamp\n"
+      parameters:
+      - name: marketId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                basic:
+                  $ref: '#/components/examples/MarketTickerExample'
+        '404':
+          description: Market not Found
+  /v3/markets/{marketId}/trades:
+    get:
+      tags:
+      - Market Data APIs
+      summary: Get Market Trades
+      description: Retrieves list of most recent trades for the given market. This API supports pagination.
+      parameters:
+      - name: marketId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: before
+        in: query
+        required: false
+        description: This is part of the pagination parameters.
+        schema:
+          type: integer
+          format: int64
+        example: 78234976
+      - name: after
+        in: query
+        required: false
+        description: This is part of the pagination parameters.
+        schema:
+          type: integer
+          format: int64
+        example: 78234876
+      - name: limit
+        in: query
+        description: This is part of the pagination parameters.
+        required: false
+        schema:
+          type: integer
+          format: int32
+        example: 10
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                basic:
+                  $ref: '#/components/examples/MarketTradesExample'
+  /v3/markets/{marketId}/orderbook:
+    get:
+      tags:
+      - Market Data APIs
+      summary: Get Market Orderbook
+      description: Retrieves list of bids and asks for a given market. Passing `level=1` returns top 50 for bids and asks. `level=0` reurns top bids and ask orders only. `level=2` returns full orderbook (full orderbook data is cached and usually updated every 10 seconds). Each market order is represented as an array of string `[price, volume]`. The attribute `snapshotId` is a unique number associated to orderbook and it changes every time orderbook changes.
+      parameters:
+      - name: marketId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: level
+        in: query
+        required: false
+        description: specifies the depth of the orderbook and possible values are 0, 1 and 2. Default level is 1 if not specified.
+        schema:
+          type: integer
+        example: 1
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                basic:
+                  $ref: '#/components/examples/MarketOrderbookL1Example'
+  /v3/markets/{marketId}/candles:
+    get:
+      tags:
+      - Market Data APIs
+      summary: Get Market Candles
+      description: '
+
+        Retrieves array of candles for a given market. Each candle record is an array of string representing `[time,open,high,low,close,volume]` for the time window specified (default time window is 1 day).
+
+
+        This API can be used to retrieve candles either by pagination (`before`, `after`, `limit`) or by specifying timestamp parameters (`from` and/or `to`). Pagination parameters can''t be combined with timestamp parameters and the default behavior is pagination when no query param is specified.
+
+
+        When using timestamp parameters as query string, the maximum number of items that can be retrieved is 1000. Depending on the specified timeWindow, this can be different time windows. For instance, when using `timeWindow=1d`, up to 1000 days of market candles can be retrieved.
+
+        '
+      parameters:
+      - name: marketId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: timeWindow
+        in: query
+        required: false
+        description: values can be `1m`, `3m`, `5m`, `15m`, `30m`, `1h`, `2h`, `3h`, `4h`, `6h`, `1d`, `1w` and `1mo` representing 1 minute, 3 minutes, 5 minutes, 15 minutes, 30 minutes, 1 hour, 2 hours, 3 hours, 4 hours, 6 hours, 1 day, 1 week and 1 month. Default value is `1d` if not specified.
+        schema:
+          type: string
+        example: 1h
+      - name: from
+        in: query
+        required: false
+        description: allows retrieving market candles from a specific time. The value is of the type timestamp and must be in ISO 8601 format. e.g. `2018-08-20T06:22:11.000000Z`.
+        schema:
+          type: string
+      - name: to
+        in: query
+        required: false
+        description: allows retrieving market candles up to a specific time. The value is of the type timestamp and must be in ISO 8601 format. e.g. `2019-08-20T06:22:11.000000Z`.
+        schema:
+          type: string
+      - name: before
+        in: query
+        required: false
+        description: This is part of the pagination parameters.
+        schema:
+          type: integer
+          format: int64
+        example: 78234976
+      - name: after
+        in: query
+        required: false
+        description: This is part of the pagination parameters.
+        schema:
+          type: integer
+          format: int64
+        example: 78234876
+      - name: limit
+        in: query
+        description: This is part of the pagination parameters.
+        required: false
+        schema:
+          type: integer
+          format: int32
+        example: 10
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                basic:
+                  $ref: '#/components/examples/MarketCandlesExample'
+  /v3/markets/tickers:
+    get:
+      tags:
+      - Market Data APIs
+      summary: Get Multiple Tickers
+      description: 'This API works similar to `/v3/markets/{marketId}/ticker` except it retrieves tickers for a given list of marketIds provided via query string (e.g. `?marketId=ETH-BTC&marketId=XRP-BTC`).
+
+
+        To gain better performance, restrict the number of `marketIds` to the items needed for your trading app instead of requesting all markets.
+
+        '
+      parameters:
+      - name: marketId
+        in: query
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                basic:
+                  $ref: '#/components/examples/MarketTickerListExample'
+  /v3/markets/orderbooks:
+    get:
+      tags:
+      - Market Data APIs
+      summary: Get Multiple Orderbooks
+      description: 'This API works similar to `/v3/markets/{marketId}/orderbook` except it retrieves orderbooks for a given list of marketIds provided via query string (e.g. `?marketId=ETH-BTC&marketId=XRP-BTC`).
+
+
+        To gain better performance, restrict the number of `marketIds` to the items needed for your trading app instead of requesting all markets.
+
+
+        Retrieving full orderbook (`level=2`) for multiple markets was mainly provided for customers who are interested in capturing and keeping full orderbook history. Therefore, it is recommended to call this API with lower frequency as the data size can be large and also cached.
+
+        '
+      parameters:
+      - name: marketId
+        in: query
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                basic:
+                  $ref: '#/components/examples/MarketOrderbookL1ListExample'
+  /v3/withdrawals:
+    post:
+      tags:
+      - Fund Management APIs
+      summary: Request to Withdraw
+      description: "This API is used to request to withdraw crypto assets or `AUD`.\n## Withdrawal/Deposit Status\n- `Accepted`: The withdrawal request has been accepted for processing.\n- `Pending Authorization`: The withdrawal request has been accepted and is being processed.\n- `Complete`: The withdrawal/deposit request has been successfully processed.\n- `Cancelled`: The withdrawal request has been canceled due to issues with the request.\n- `Failed`: The withdrawal request has been failed due to a system error.\n\n## clientTransferId:\n- This is an optional parameter that can be set by the client applications to track withdrawals. In addition to retrieving withdrawal records, e.g. `GET /v3/withdrawals/a4`, it can also be useful in the event of a network issue or a timeout to track any previous withdrawal requests. It is a string field between 1 to 64 with the following characters allowed: a-z, A-Z, 0-9, - allowing standard formats like UUID.\n\n## beneficiaryDetail (Travel Rule):\n\
+        - To comply with AUSTRAC's travel rule obligations, withdrawal requests can include a `beneficiaryDetail` object describing the recipient.\n- The `type` attribute can be either `Individual` or `Business`:\n    - For `Individual`, supply `firstName` and `lastName`.\n    - For `Business`, supply `businessName`.\n- This attribute is currently **optional**. From `2026-06-15 12:00 AEST` it will become **mandatory**, and requests without it will be rejected with the error code `InvalidTransferBeneficiaryDetail`.\n- When supplied, `beneficiaryDetail` is stored against the withdrawal record and returned in responses for listing withdrawals (`GET /v3/withdrawals`) and transfers (`GET /v3/transfers`).\n"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+              - description: request to withdraw
+                title: New request
+              - $ref: '#/components/schemas/CreateWithdrawRequest'
+            examples:
+              crypto:
+                summary: crypto
+                value:
+                  assetName: XRP
+                  amount: '25'
+                  toAddress: abc
+                  clientTransferId: a3
+                  beneficiaryDetail:
+                    type: Individual
+                    firstName: John
+                    lastName: Smith
+              fiat:
+                summary: fiat
+                value:
+                  assetName: AUD
+                  amount: '10'
+                  accountName: John Smith
+                  accountNumber: '123456'
+                  bsbNumber: '123456'
+                  bankName: ABC Bank
+                  paymentDescription: Ref 100002
+                  clientTransferId: a3
+                  beneficiaryDetail:
+                    type: Business
+                    businessName: ABC Trading Inc
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/examples/WithdrawalResponse'
+              examples:
+                crypto:
+                  $ref: '#/components/examples/WithdrawCryptoExample'
+                fiat:
+                  $ref: '#/components/examples/WithdrawFiatExample'
+        '400':
+          content:
+            application/json:
+              examples:
+                missingParam:
+                  summary: amount exceeds
+                  value:
+                    code: AmountExceedAvailableFund
+                    message: The amount exceeds withdrawable fund.
+                missingBeneficiary:
+                  summary: missing beneficiary detail (mandatory from 2026-06-15 12:00 AEST)
+                  value:
+                    code: InvalidTransferBeneficiaryDetail
+                    message: beneficiaryDetail is required.
+    get:
+      tags:
+      - Fund Management APIs
+      summary: List Withdrawals
+      description: Returns a list of withdrawals. This API supports pagination.
+      parameters:
+      - name: before
+        in: query
+        required: false
+        description: This is part of the pagination parameters.
+        schema:
+          type: integer
+          format: int64
+        example: 78234976
+      - name: after
+        in: query
+        required: false
+        description: This is part of the pagination parameters.
+        schema:
+          type: integer
+          format: int64
+        example: 78234876
+      - name: limit
+        in: query
+        description: This is part of the pagination parameters.
+        required: false
+        schema:
+          type: integer
+          format: int32
+        example: 10
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                basic:
+                  $ref: '#/components/examples/TransferListExample'
+  /v3/withdrawals/{id}:
+    get:
+      tags:
+      - Fund Management APIs
+      summary: Get Withdrawal by ID
+      description: This API is used to request to get a withdrawal by ID.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                basic:
+                  $ref: '#/components/examples/WithdrawCryptoExample'
+        '404':
+          description: Not found
+  /v3/deposits:
+    get:
+      tags:
+      - Fund Management APIs
+      summary: List Deposits
+      description: Returns a list of deposits. This API supports pagination.
+      parameters:
+      - name: before
+        in: query
+        required: false
+        description: This is part of the pagination parameters.
+        schema:
+          type: integer
+          format: int64
+        example: 78234976
+      - name: after
+        in: query
+        required: false
+        description: This is part of the pagination parameters.
+        schema:
+          type: integer
+          format: int64
+        example: 78234876
+      - name: limit
+        in: query
+        description: This is part of the pagination parameters.
+        required: false
+        schema:
+          type: integer
+          format: int32
+        example: 10
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                basic:
+                  $ref: '#/components/examples/TransferListExample'
+  /v3/deposits/{id}:
+    get:
+      tags:
+      - Fund Management APIs
+      summary: Get Deposit by ID
+      description: This API returns a deposit by ID.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                basic:
+                  $ref: '#/components/examples/DepositCryptoExample'
+        '404':
+          description: Not found
+  /v3/transfers:
+    get:
+      tags:
+      - Fund Management APIs
+      summary: List Deposits/Withdrawals
+      description: 'A transfer record refers either to a deposit or withdrawal. This API returns a list of transfers covering both deposits and withdrawals, and this API supports pagination.
+
+
+        `type` represents the kind of transfer, e.g. `Deposit` or `Withdraw`. Transfers of funds between a parent account and its sub accounts appear with these types:
+
+        * `Internal Transfer Out`: funds moved out of the account (reduces the balance)
+
+        * `Internal Transfer In`: funds moved into the account (increases the balance)
+
+        '
+      parameters:
+      - name: before
+        in: query
+        required: false
+        description: This is part of the pagination parameters.
+        schema:
+          type: integer
+          format: int64
+        example: 78234976
+      - name: after
+        in: query
+        required: false
+        description: This is part of the pagination parameters.
+        schema:
+          type: integer
+          format: int64
+        example: 78234876
+      - name: limit
+        in: query
+        description: This is part of the pagination parameters.
+        required: false
+        schema:
+          type: integer
+          format: int32
+        example: 10
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                basic:
+                  $ref: '#/components/examples/TransferListExample'
+  /v3/transfers/{id}:
+    get:
+      tags:
+      - Fund Management APIs
+      summary: Get Deposits/Withdrawals by ID
+      description: This API returns either a deposit or withdrawal by ID. `paymentDescription` is an optional value
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                basic:
+                  $ref: '#/components/examples/DepositCryptoExample'
+        '404':
+          description: Not found
+  /v3/addresses:
+    get:
+      tags:
+      - Fund Management APIs
+      summary: Get Deposit Address
+      description: Returns deposit address for the given asset.
+      parameters:
+      - name: assetName
+        in: query
+        required: true
+        description: asset name for the deposit address
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                basic:
+                  $ref: '#/components/examples/AddressGetExample'
+  /v3/withdrawal-fees:
+    get:
+      tags:
+      - Fund Management APIs
+      summary: Get Withdrawal Fees
+      description: 'Returns fees associated with withdrawals. This API is public and does not require authentication as the fees are system-wide and published on the website.
+
+        '
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                basic:
+                  $ref: '#/components/examples/WithdrawFeesExample'
+  /v3/assets:
+    get:
+      tags:
+      - Fund Management APIs
+      summary: List Assets
+      description: "Retrieves list of assets including configuration.\n\n* `assetName`: name of the asset that is used for trading or investment, e.g AUD\n* `assetFullName`: full name of the asset, e.g Australian Dollar\n* `minDepositAmount`: minimum amount to deposit\n* `maxDepositAmount`: maximum amount to deposit\n* `depositFee`: deposit fee\n* `depositDecimals`: number of decimal places allowed for deposits\n* `minWithdrawalAmount`: minimum amount to withdraw\n* `maxWithdrawalAmount`: maximum amount to withdraw\n* `withdrawalFee`: withdrawal fee\n* `withdrawalDecimals`: number of decimal places allowed for withdrawals\n* `status`: current status of the asset; can be Online, Offline, Deposit Only, or Withdrawal Only\n\nAsset Status Options:\n- `Offline`: The asset is currently offline; no withdrawals or deposits can be made.\n- `Deposit Only`: The asset is available but only allows deposits at this stage.\n- `Withdrawal Only`: The asset is available but only allows withdrawals at this\
+        \ stage.\n- `Online`: The asset is online and operational with no restrictions. \n"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                basic:
+                  $ref: '#/components/examples/AssetsExample'
+  /v3/reports:
+    post:
+      tags:
+      - Report APIs
+      summary: Create new Report
+      description: Request to generate a new report.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+              - description: create new report
+                title: New report
+              - $ref: '#/components/schemas/CreateReportRequest'
+            examples:
+              bid:
+                summary: new order example
+                value:
+                  type: TransactionReport
+                  format: json
+  /v3/reports/{id}:
+    get:
+      tags:
+      - Report APIs
+      summary: Get Report by ID
+      parameters:
+      - name: reportId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                basic:
+                  $ref: '#/components/examples/ReportExample'
+      description: "This API returns details of the report once it's been created via the previous API.\n\nOn average, report generation takes about 20 seconds. Please allow a minimum of 10 seconds, although we recommend waiting at least 30 seconds, before attempting to get details of the report after you request it via the previous API. Trying too quickly to get details of a newly created report will result in an HTTP `404` response.  A successful response of this API contains a link that you can use to download the report content.\n\nThe attribute `contentUrl` inside the above response is a link to download the report content (in either `json` or `csv` format).\nPlease note that report content files are only available for download for up to 30 minutes after creation time.\n\nThe reporting system allows users to run different types of reports. At this stage, API v3 supports `TransactionReport` and `AccountTradingReport`. \nA transaction report covers all the historical changes made to all\
+        \ of your wallets including deposits, withdrawals, airdrops, rewards, buy/sell transfers, internal transfers, order executions, and trading fees.\nAn account trading report covers all the historical trades made on your account.\n\nSample transaction report content in json format:\n\n```\n[{\"transactionId\":\"12345\",\"creationTime\":\"2017-12-11T06:01:28Z\",\"recordType\":\"Fund Transfer\",\"action\":\"Deposit\",\"currency\":\"AUD\",\"amount\":\"10\",\"description\":\"EFT deposit was successfull.Reference: testing bank\",\"balance\":\"10\",\"referenceId\":\"260\"},\n {\"transactionId\":\"830309\",\"creationTime\":\"2018-07-11T06:26:34Z\",\"recordType\":\"Trade\",\"action\":\"Sell Order\",\"currency\":\"BTC\",\"amount\":\"-0.49\",\"description\":\"Sell 0.49000000BTC @ AUD 19.87000000 Fully matched at 29.55000000\",\"balance\":\"124.89128772\",\"referenceId\":\"830303\"},\n {\"transactionId\":\"830310\",\"creationTime\":\"2018-07-11T06:26:34Z\",\"recordType\":\"Trade\",\"action\"\
+        :\"Sell Order\",\"currency\":\"AUD\",\"amount\":\"14.4795\",\"description\":\"Sell 0.49000000BTC @ AUD 29.55000000 Trade settled\",\"balance\":\"17497.62177794\",\"referenceId\":\"830303\"},\n {\"transactionId\":\"830311\",\"creationTime\":\"2018-07-11T06:26:34Z\",\"recordType\":\"Trade\",\"action\":\"Trading Fee\",\"currency\":\"AUD\",\"amount\":\"-0.1201797\",\"description\":\"Sell 0.49000000BTC @ AUD 29.55000000 Trading fee\",\"balance\":\"17497.50159824\",\"referenceId\":\"830303\"}]\n```\n\n* `referenceId` in this report represents either orderId or the ID of the fund transfer.\n* For orders, multiple transactions will have the same `referenceId` that covers increase/decrease of amounts in corresponding wallets (e.g. buy BTC using AUD wallet) and also the fees paid.\n* `recordType` can be either \"Fund Transfer\" (representing deposits, withdrawals, airdrops, rewards, buy/sell transfers and internal transfers between a parent account and its sub accounts, with action `Internal\
+        \ Transfer Out` or `Internal Transfer In`) or \"Trade\" (representing buys, sells, and trading fees).\n* `balance` represents the balance after each transaction.\n\nSample trading report content in csv format:\n\n```\nid, creationTime, price, amount, side, marketId, fee(Inc tax), feeAssetName, feeInBaseCurrency(Inc tax), taxInBaseCurrency, orderId, liquidityType\n19667,2018-07-04T22:40:31.695000Z,0.66,1,Ask,XRP-AUD,0.00560999,AUD,0.00560999,0.00050999,19655,Taker\n23022,2018-09-21T14:56:25.801000Z,1,1,Ask,XRP-AUD,0.00849999,AUD,0.00849999,0.00077272,19641,Taker\n29962,2019-02-28T01:06:10.776000Z,0.212,1,Bid,BAT-AUD,0.00180199,AUD,0.00180199,0.00016381,29651,Taker\n```\n"
+  /v3/accounts/me/trading-fees:
+    get:
+      tags:
+      - Account APIs
+      summary: Get Trading Fees
+      description: Returns 30 day trading fee volume plus the trading fee per market that covers `marker` and `taker`.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                basic:
+                  $ref: '#/components/examples/TradingFeeExample'
+  /v3/accounts/me/withdrawal-limits:
+    get:
+      tags:
+      - Account APIs
+      summary: Get Withdrawal Limits
+      description: This API returns daily withdrawal limits per asset for your account.
+  /v3/accounts/me/balances:
+    get:
+      tags:
+      - Account APIs
+      summary: Get Balances
+      description: 'Returns list of assets covering the balance, available, and locked amount for each asset due to open orders or pending withdrawals.
+
+        This formula represents the relationship between those three elements: `balance = available + locked`.
+
+        '
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                basic:
+                  $ref: '#/components/examples/BalanceListExample'
+  /v3/accounts/me/transactions:
+    get:
+      tags:
+      - Account APIs
+      summary: Get Transactions
+      description: Returns detailed ledger records for underlying wallets. This API supports pagination.
+      parameters:
+      - name: assetName
+        in: query
+        required: false
+        description: filter transactions for specific asset
+        schema:
+          type: string
+        example: BTC
+      - name: before
+        in: query
+        required: false
+        description: This is part of the pagination parameters.
+        schema:
+          type: integer
+          format: int64
+        example: 78234976
+      - name: after
+        in: query
+        required: false
+        description: This is part of the pagination parameters.
+        schema:
+          type: integer
+          format: int64
+        example: 78234876
+      - name: limit
+        in: query
+        description: This is part of the pagination parameters.
+        required: false
+        schema:
+          type: integer
+          format: int32
+        example: 10
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                basic:
+                  $ref: '#/components/examples/TransactionListExample'
+  /v3/time:
+    get:
+      tags:
+      - Misc APIs
+      summary: Get Server Time
+      description: Returns the server time.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                basic:
+                  $ref: '#/components/examples/TimeExample'
+components:
+  schemas:
+    OrderStatus:
+      type: string
+      enum:
+      - Accepted
+      - Placed
+      - Partially Matched
+      - Fully Matched
+      - Cancelled
+      - Partially Cancelled
+      - Failed
+    OrderType:
+      type: string
+      enum:
+      - Limit
+      - Market
+      - Stop Limit
+      - Stop
+      - Take Profit
+      description: type of the order
+    OrderSide:
+      type: string
+      enum:
+      - Bid
+      - Ask
+      description: side of the order
+    PlaceOrderRequest:
+      type: object
+      required:
+      - marketId
+      - price
+      - amount
+      - type
+      - side
+      properties:
+        marketId:
+          description: specify a marketId e.g. BTC-AUD
+          type: string
+        price:
+          description: null
+          type: string
+        amount:
+          description: null
+          type: string
+        type:
+          $ref: '#/schemas/OrderType'
+        side:
+          $ref: '#/schemas/OrderSide'
+        triggerPrice:
+          description: this is mandatory if order type is Stop, Stop Limit or Take Profit
+          type: string
+        targetAmount:
+          description: specifiy target amount when a desired target outcome is required for order execution
+          type: string
+        timeInForce:
+          description: possible values are GTC (default option) , FOK and IOC
+          type: string
+        postOnly:
+          description: if this is a post-only order
+          type: boolean
+        selfTrade:
+          description: A or P
+          type: string
+        clientOrderId:
+          description: a unique order id speciifed by client app.
+          type: string
+    ReplaceOrderRequest:
+      type: object
+      required:
+      - price
+      - amount
+      properties:
+        price:
+          description: null
+          type: string
+        amount:
+          description: null
+          type: string
+        clientOrderId:
+          description: optional. a unique order id speciifed by client app.
+          type: string
+    CancelOrderRequest:
+      type: object
+      properties:
+        orderId:
+          description: exchange generated order id
+          type: string
+        clientOrderId:
+          description: client generated order id
+          type: string
+    BatchOrderRequest:
+      type: object
+      properties:
+        placeOrder:
+          $ref: '#/schemas/PlaceOrderRequest'
+        cancelOrder:
+          $ref: '#/schemas/CancelOrderRequest'
+    BatchOrderRequests:
+      type: array
+      items:
+        $ref: '#/schemas/BatchOrderRequest'
+    BeneficiaryDetail:
+      type: object
+      description: 'Beneficiary information for the withdrawal recipient, required to comply with AUSTRAC''s travel rule obligations.
+
+        Currently optional, but will become mandatory from `2026-06-15 12:00 AEST`. Once mandatory, requests without this attribute will fail with the error code `InvalidTransferBeneficiaryDetail`.
+
+        '
+      required:
+      - type
+      properties:
+        type:
+          type: string
+          enum:
+          - Individual
+          - Business
+          description: type of the beneficiary. Determines which additional fields are required.
+        firstName:
+          type: string
+          description: beneficiary first name. Required when `type` is `Individual`.
+        lastName:
+          type: string
+          description: beneficiary last name. Required when `type` is `Individual`.
+        businessName:
+          type: string
+          description: legal business name. Required when `type` is `Business`.
+    CreateWithdrawRequest:
+      type: object
+      required:
+      - assetName
+      - amount
+      properties:
+        assetName:
+          type: string
+          description: name of the asset to withdraw e.g. `AUD` or `BTC`
+        amount:
+          type: string
+          description: amount to withdraw
+        toAddress:
+          type: string
+          description: destination address for crypto withdrawal. mandatory for crypto assets. For `XRP` withdrawals, you can optionally add destination tag to the address with `?dt=12345` e.g. `1EJKj147QmEzywLnLpuxSr6SoPr1p62VBX?dt=123456`
+        accountName:
+          type: string
+          description: optional for AUD withdrawal. when not specified default bank information is used
+        accountNumber:
+          type: string
+          description: optional for AUD withdrawal. when not specified default bank information is used
+        bsbNumber:
+          type: string
+          description: optional for AUD withdrawal. when not specified default bank information is used
+        bankName:
+          type: string
+          description: optional for AUD withdrawal. when not specified default bank information is used
+        paymentDescription:
+          type: string
+          description: optional for AUD withdrawal. Maximum character length of 18 and only alphanumeric
+        clientTransferId:
+          type: string
+          description: optional for withdrawal requests.
+        beneficiaryDetail:
+          $ref: '#/schemas/BeneficiaryDetail'
+    Order:
+      type: object
+      properties:
+        orderId:
+          type: string
+        marketId:
+          type: string
+        side:
+          type: string
+        type:
+          type: string
+        creationTime:
+          type: string
+        price:
+          type: string
+        amount:
+          type: string
+        openAmount:
+          type: string
+        status:
+          type: string
+        triggerPrice:
+          type: string
+        targetAmount:
+          type: string
+        timeInForce:
+          type: string
+        postOnly:
+          type: boolean
+        selfTrade:
+          type: string
+        errorMessage:
+          type: string
+          description: Indicates why the order failed after it was accepted. This attribute is null in most situations except for rare cases where the order is accepted at the point of entry but then rejected by the matching engine (e.g., due to insufficient funds).
+        clientOrderId:
+          type: string
+    CancelOrders:
+      type: object
+      properties:
+        marketId:
+          description: comma delimited list of marketIds. e.g. BTC-AUD,ETH-AUD
+    CancelOrderResponse:
+      type: object
+      properties:
+        orderId: type:string
+        clientOrderId: type:string
+    CreateReportRequest:
+      type: object
+      required:
+      - type
+      - format
+      properties:
+        type:
+          description: type of the report. the only accepted values are `TransactionReport` or `AccountTradingReport` at this stage.
+          type: string
+        format:
+          description: value can be  either `csv` or `json`
+          type: string
+  requestBodies:
+    PlaceOrderRequest:
+      content:
+        application/json:
+          schema:
+            allOf:
+            - description: Place new order
+              title: New order request
+            - $ref: '#/schemas/PlaceOrderRequest'
+          examples:
+            bid:
+              summary: new order example
+              value:
+                marketId: BTC-AUD
+                price: '100.12'
+                amount: '0.034'
+                type: Limit
+                side: Bid
+    CancelOrders:
+      content:
+        application/json:
+          schema:
+            allOf:
+            - description: cancel all orders
+              title: Cancel Orders
+            - $ref: '#/schemas/CancelOrders'
+  examples:
+    InvalidRequestExample:
+      value:
+        code: InvalidOrderSide
+        message: invalid order side
+      summary: basic order attributes
+    BasicOrderExample:
+      value:
+        orderId: '7524'
+        marketId: BTC-AUD
+        side: Bid
+        type: Limit
+        creationTime: '2019-08-30T11:08:21.956000Z'
+        price: '100.12'
+        amount: '1.034'
+        openAmount: '1.034'
+        status: Accepted
+      summary: basic order attributes
+    AllOrderExample:
+      value:
+        orderId: '7524'
+        marketId: BTC-AUD
+        side: Bid
+        type: Limit
+        creationTime: '2019-08-30T11:08:21.956000Z'
+        price: '100.12'
+        amount: '1.034'
+        openAmount: '1.034'
+        status: Accepted
+        clientOrderId: 1234-5678
+        timeInForce: IOC
+        postOnly: false
+        selfTrade: P
+        triggerAmount: '105'
+        targetAmount: '1000'
+      summary: all order attributes
+    CancelledOrderExample:
+      value:
+        orderId: '7524'
+        clientOrderId: 123-456
+      summary: order cancellation
+    CancelledOrderExamples:
+      value:
+      - orderId: '7524'
+        clientOrderId: 123-456
+      - orderId: '435'
+        clientOrderId: abc
+      summary: order cancellation
+    BatchOrderGetExample:
+      value:
+        orders:
+        - orderId: '751843'
+          marketId: BTC-AUD
+          side: Ask
+          type: Limit
+          creationTime: '2019-08-29T13:12:33.576000Z'
+          price: '148'
+          amount: '1.1'
+          openAmount: '1.1'
+          status: Cancelled
+          clientOrderId: '2'
+        unprocessedRequests:
+        - code: OrderNotFound
+          message: order was not found
+          requestId: abcdefgh
+        - code: OrderNotFound
+          message: order was not found
+          requestId: '12'
+      summary: basic order attributes
+    BatchOrderProcessingWithErrorExample:
+      value:
+        placeOrders:
+        - orderId: '752132'
+          marketId: BTC-AUD
+          side: Ask
+          type: Limit
+          creationTime: '2019-09-01T17:38:17.404000Z'
+          price: '112'
+          amount: '1.03'
+          openAmount: '1.03'
+          status: Accepted
+          clientOrderId: '44'
+        cancelOrders:
+        - orderId: '752129'
+          clientOrderId: '43'
+        unprocessedRequests:
+        - code: InvalidOrderSide
+          message: invalid order side
+          requestId: '45'
+        - code: OrderNotFound
+          message: order was not found
+          requestId: '39'
+      summary: basic order attributes
+    BatchOrderProcessingAllErrorsExample:
+      value:
+        placeOrders: []
+        cancelOrders: []
+        unprocessedRequests:
+        - code: DuplicateClientOrderId
+          message: duplicate client order id was found.
+          requestId: '4'
+        - code: OrderAlreadyCancelled
+          message: order is already cancelled.
+          requestId: '1'
+        - code: InsufficientFund
+          message: Insufficient funds.
+          requestId: '5'
+        - code: OrderNotFound
+          message: order was not found
+          requestId: '39'
+      summary: all errors
+    BatchOrderCancelExample:
+      value:
+        cancelOrders:
+        - orderId: '414186'
+          clientOrderId: '6'
+        - orderId: '414192'
+          clientOrderId: '7'
+        unprocessedRequests:
+        - code: OrderAlreadyCancelled
+          message: order is already cancelled.
+          requestId: '1'
+      summary: basic order attributes
+    BatchOrderRequestExample:
+      value:
+      - placeOrder:
+          marketId: BTC-AUD
+          side: Ask
+          type: Limit
+          price: '112'
+          amount: '1.03'
+          clientOrderId: '44'
+        cancelOrder:
+          clientOrderId: '43'
+      - placeOrder:
+          marketId: BTC-AUD
+          side: Ask1
+          type: Limit
+          price: '112'
+          amount: '1.03'
+          clientOrderId: '45'
+        cancelOrder:
+          orderId: '3467439'
+      summary: basic order attributes
+    TradeListExample:
+      value:
+      - id: '36014819'
+        marketId: XRP-AUD
+        timestamp: '2019-06-25T16:01:02.977000Z'
+        price: '0.67'
+        amount: '1.50533262'
+        side: Ask
+        fee: '0.00857285'
+        orderId: '3648306'
+        liquidityType: Taker
+        clientOrderId: '48'
+        valueInQuoteAsset: '0.44508'
+      - id: '3568960'
+        marketId: GNT-AUD
+        timestamp: '2019-06-20T08:44:04.488000Z'
+        price: '0.1362'
+        amount: '0.85'
+        side: Bid
+        fee: '0.00098404'
+        orderId: '3543015'
+        liquidityType: Maker
+        valueInQuoteAsset: '0.160235'
+      summary: trade list
+    MarketTickerExample:
+      value:
+        marketId: BAT-AUD
+        bestBid: '0.2612'
+        bestAsk: '0.2677'
+        lastPrice: '0.2652'
+        volume24h: '6392.34930418'
+        volumeQte24h: '1.39'
+        price24h: '130'
+        pricePct24h: '0.002'
+        low24h: '0.2621'
+        high24h: '0.2708'
+        timestamp: '2019-09-01T10:35:04.940000Z'
+      summary: market ticker
+    MarketTickerListExample:
+      value:
+      - marketId: BTC-AUD
+        bestBid: '9000'
+        bestAsk: '9900'
+        lastPrice: '8500'
+        volume24h: '1444.44'
+        volumeQte24h: '0.523'
+        price24h: '130'
+        pricePct24h: '0.002'
+        low24h: '12'
+        high24h: '50000'
+        timestamp: '2019-07-31T21:32:08.659000Z'
+      - marketId: LTC-AUD
+        bestBid: '99.12'
+        bestAsk: '101.14'
+        lastPrice: '100'
+        volume24h: '1199.8'
+        volumeQte24h: '1.09'
+        price24h: '10'
+        pricePct24h: '0.001'
+        low24h: '100'
+        high24h: '120'
+        timestamp: '2019-05-02T15:22:51.770000Z'
+      summary: market ticker
+    MarketTradesExample:
+      value:
+      - id: '4107372347'
+        price: '0.265'
+        amount: '11.25'
+        timestamp: '2019-09-02T12:49:42.874000Z'
+        side: Ask
+      - id: '4107297908'
+        price: '0.265'
+        amount: '250'
+        timestamp: '2019-09-02T12:15:29.570000Z'
+        side: Bid
+      summary: market trades
+    MarketOrderbookL1Example:
+      value:
+        marketId: BAT-AUD
+        snapshotId: 1567334110144000
+        asks:
+        - - '0.2677'
+          - '5665.85'
+        - - '0.2681'
+          - '52355'
+        - - '0.271'
+          - '1316'
+        - - '0.2782'
+          - '2500'
+        bids:
+        - - '0.2612'
+          - '2.93273959'
+        - - '0.2611'
+          - '17847.844'
+      summary: market orderbook level 1
+    MarketOrderbookL1ListExample:
+      value:
+      - marketId: BAT-AUD
+        snapshotId: 1567334110144000
+        asks:
+        - - '0.2677'
+          - '5665.85'
+        - - '0.2681'
+          - '52355'
+        - - '0.271'
+          - '1316'
+        - - '0.2782'
+          - '2500'
+        bids:
+        - - '0.2612'
+          - '2.93273959'
+        - - '0.2611'
+          - '17847.844'
+      - marketId: LTC-AUD
+        snapshotId: 1567334110146000
+        asks:
+        - - '10.2677'
+          - '5665.85'
+        - - '10.2681'
+          - '52355'
+        - - '10.271'
+          - '1316'
+        - - '10.2782'
+          - '2500'
+        bids:
+        - - '10.2612'
+          - '2.93273959'
+        - - '10.2611'
+          - '17847.844'
+      summary: market orderbook level 1
+    MarketCandlesExample:
+      value:
+      - - '2019-09-02T18:00:00.000000Z'
+        - '15100'
+        - '15200'
+        - '15100'
+        - '15199'
+        - '4.11970335'
+      - - '2019-09-02T17:00:00.000000Z'
+        - '14879.75'
+        - '15115'
+        - '14861.99'
+        - '15115'
+        - '10.01840031'
+      summary: market orderbook level 2
+    MarketsExample:
+      value:
+      - marketId: BTC-AUD
+        baseAssetName: BTC
+        quoteAssetName: AUD
+        minOrderAmount: '0.0001'
+        maxOrderAmount: '1000000'
+        amountDecimals: '8'
+        priceDecimals: '2'
+        status: Online
+      - marketId: LTC-AUD
+        baseAssetName: LTC
+        quoteAssetName: AUD
+        minOrderAmount: '0.001'
+        maxOrderAmount: '1000000'
+        amountDecimals: '8'
+        priceDecimals: '2'
+        status: Post Only
+      summary: list of markets
+    TimeExample:
+      value:
+        timestamp: '2019-09-01T18:34:27.045000Z'
+      summary: server time
+    ReportExample:
+      value:
+        id: jsqmkd72lmd13cd0
+        contentUrl: https://report.s3.ap-southeast-2.amazonaws.com/jsqmkd72lmd13cd0
+        creationTime: '2019-08-20T18:08:06.110000Z'
+        type: TransactionReport
+        status: Complete
+        format: json
+      summary: report by id
+    ReportContentExample:
+      value:
+      - transactionId: '12345'
+        creationTime: '2017-12-11T06:01:28Z'
+        recordType: Fund Transfer
+        action: Deposit
+        currency: AUD
+        amount: '10'
+        description: 'EFT deposit was successfull.Reference: testing bank'
+        balance: '10'
+        referenceId: '260'
+      - transactionId: '830309'
+        creationTime: '2018-07-11T06:26:34Z'
+        recordType: Trade
+        action: Sell Order
+        currency: BTC
+        amount: '-0.49'
+        description: Sell 0.49000000BTC @ AUD 19.87000000 Fully matched at 29.55000000
+        balance: '124.89128772'
+        referenceId: '830303'
+      - transactionId: '830310'
+        creationTime: '2018-07-11T06:26:34Z'
+        recordType: Trade
+        action: Sell Order
+        currency: AUD
+        amount: '14.4795'
+        description: Sell 0.49000000BTC @ AUD 29.55000000 Trade settled
+        balance: '17497.62177794'
+        referenceId: '830303'
+      - transactionId: '830311'
+        creationTime: '2018-07-11T06:26:34Z'
+        recordType: Trade
+        action: Trading Fee
+        currency: AUD
+        amount: '-0.1201797'
+        description: Sell 0.49000000BTC @ AUD 29.55000000 Trading fee
+        balance: '17497.50159824'
+        referenceId: '830303'
+      summary: report content
+    WithdrawCryptoExample:
+      value:
+        id: '4126657'
+        assetName: XRP
+        amount: '25'
+        type: Withdraw
+        creationTime: '2019-09-04T00:04:10.973000Z'
+        status: Pending Authorization
+        description: 'XRP withdraw from [me@test.com] to Address: abc amount: 25 fee: 0'
+        fee: '0'
+        lastUpdate: '2019-09-04T00:04:11.018000Z'
+        clientTransferId: a3
+        paymentDetail:
+          address: abc
+        beneficiaryDetail:
+          type: Individual
+          firstName: John
+          lastName: Smith
+      summary: crypto withdraw example
+    WithdrawFiatExample:
+      value:
+        id: '1224081'
+        assetName: AUD
+        amount: '10'
+        type: Withdraw
+        creationTime: '2019-09-04T02:01:07.830000Z'
+        status: Pending Authorization
+        description: 'Withdraw from [me@test.com] to bank, John Smith(BSB: 123456, Account: 6543321)'
+        fee: '0'
+        lastUpdate: '2019-09-04T02:01:08.013000Z'
+        clientTransferId: a43
+        paymentDetail:
+          paymentDescription: Ref 100002
+        beneficiaryDetail:
+          type: Business
+          businessName: ABC Trading Inc
+      summary: fiat withdraw example
+    WithdrawalResponse:
+      type: object
+      required:
+      - id
+      - assetName
+      - amount
+      - type
+      - creationTime
+      - status
+      - description
+      - fee
+      - lastUpdate
+      properties:
+        id:
+          description: null
+          type: string
+        assetName:
+          description: null
+          type: string
+        amount:
+          description: null
+          type: string
+        type:
+          description: null
+          type: string
+        creationTime:
+          description: null
+          type: string
+        status:
+          description: null
+          type: string
+        description:
+          description: null
+          type: string
+        fee:
+          description: null
+          type: string
+        lastUpdate:
+          description: null
+          type: string
+        clientTransferId:
+          description: null
+          type: string
+        paymentDetail:
+          description: null
+          type: object
+          properties:
+            txId:
+              description: represents unique blockchain transaction id, used for crypto withdrawals
+              type: string
+            address:
+              description: destination address for blockchain payment, used for crypto withdrawals
+              type: string
+            paymentDescription:
+              description: can be used for both crypto and fiat withdrawals
+              type: string
+        beneficiaryDetail:
+          $ref: '#/schemas/BeneficiaryDetail'
+    DepositCryptoExample:
+      value:
+        id: '17866'
+        assetName: BTC
+        amount: '0.15710206'
+        type: Deposit
+        creationTime: '2019-08-16T23:19:03.553000Z'
+        status: Complete
+        description: BITCOIN Deposit, B 0.15710206
+        fee: '0'
+        lastUpdate: '2019-08-16T23:19:03.619000Z'
+        paymentDetail:
+          txId: E1264A7D5742480B28494
+          paymentDescription: payment-desc-1
+      summary: crypto deposit example
+    TransferListExample:
+      value:
+      - id: '123989'
+        assetName: BTC
+        amount: '0.3'
+        type: Withdraw
+        creationTime: '2019-08-27T21:41:56.832000Z'
+        status: Pending Authorization
+        description: 'BTC withdraw from [me@test.io] to Address: 3QJsRCW3qSinyC amount: 0.3 fee: 0'
+        fee: '0'
+        lastUpdate: '2019-08-27T21:41:57.004000Z'
+        clientTransferId: a43
+        paymentDetail:
+          address: 3QJmihAf3sRCW3qSinyC
+        beneficiaryDetail:
+          type: Individual
+          firstName: John
+          lastName: Smith
+      - id: '1167870'
+        assetName: AUD
+        amount: '0.15710206'
+        type: Deposit
+        creationTime: '2019-08-16T23:23:39.452000Z'
+        status: Complete
+        description: EFT Deposit, $ 0.15710206
+        fee: '0'
+        lastUpdate: '2019-08-16T23:23:39.603000Z'
+      summary: crypto withdraw example
+    AddressGetExample:
+      value:
+        address: 1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2
+        assetName: BTC
+      summary: address example
+    WithdrawFeesExample:
+      value:
+      - assetName: AUD
+        fee: '0'
+      - assetName: BTC
+        fee: '0.0003'
+      - assetName: BCHABC
+        fee: '0.001'
+      summary: withdraw fees example
+    TransactionListExample:
+      value:
+      - id: '1759'
+        creationTime: '2015-02-21T21:49:54.911000Z'
+        description: Sell 0.3000BTC @ AUD 200.0000 Trading fee
+        assetName: AUD
+        amount: '0.5082'
+        amountWithSign: '-0.5082'
+        balance: '81.9401'
+        type: Trading Fee
+        recordType: Trade
+        referenceId: '17949'
+      - id: '17958'
+        creationTime: '2015-02-21T21:49:54.906000Z'
+        description: Sell 0.3000BTC @ AUD 200.0000 Trade settled
+        assetName: AUD
+        amount: '60'
+        amountWithSign: '60'
+        balance: '82.4483'
+        type: Sell Order
+        recordType: Trade
+        referenceId: '17949'
+      - id: '15160'
+        creationTime: '2014-11-12T11:30:02.773000Z'
+        description: Sell 0.1000BTC @ AUD 4.5100 Fully matched at 4.5100
+        assetName: BTC
+        amount: '0.1'
+        amountWithSign: '-0.1'
+        balance: '99.144778'
+        type: Sell Order
+        recordType: Trade
+        referenceId: '14435'
+      - id: '8809'
+        creationTime: '2014-10-05T21:18:19.714000Z'
+        description: 'XRP deposit was successful. Reference: 1'
+        assetName: XRP
+        amount: '100'
+        amountWithSign: '100'
+        balance: '100'
+        type: Deposit
+        recordType: Transfer
+        referenceId: '8808'
+      summary: transaction list example
+    BalanceListExample:
+      value:
+      - assetName: LTC
+        balance: '5'
+        available: '5'
+        locked: '0'
+      - assetName: ETH
+        balance: '1.07583642'
+        available: '1.0'
+        locked: '0.07583642'
+      summary: balance list example
+    TradingFeeExample:
+      value:
+        volume30Day: '0.0098275'
+        feeByMarkets:
+        - makerFeeRate: '0.00849999'
+          takerFeeRate: '0.00849999'
+          marketId: BTC-AUD
+        - makerFeeRate: '0.00849999'
+          takerFeeRate: '0.00849999'
+          marketId: LTC-AUD
+        - makerFeeRate: '0.0022'
+          takerFeeRate: '0.0022'
+          marketId: LTC-BTC
+      summary: trading fees example
+    AssetsExample:
+      value:
+      - assetName: AUD
+        assetFullName: Australian Dollar
+        minDepositAmount: '1'
+        maxDepositAmount: '5000000'
+        depositDecimals: '2'
+        depositFee: '0'
+        minWithdrawalAmount: '1'
+        maxWithdrawalAmount: '5000000'
+        withdrawalDecimals: '2'
+        withdrawalFee: '0'
+        status: Online
+      summary: list of assets
+x-provenance:
+  method: searched
+  source: https://docs.btcmarkets.net/doc/openapi/index.yaml
+  generated: '2026-10-13'
+  note: Bundled from the provider-published multi-file OpenAPI (index.yaml, path/orders.yaml, components/index.yaml, info/index.yaml); verbatim sources in openapi/source/. Only external file $refs were inlined.

@@ -1,0 +1,154 @@
+openapi: 3.2.0
+info:
+  version: 3.0.0
+  title: BTC Markets Trade APIs API
+  contact:
+    name: API Support
+    email: support@btcmarkets.net
+    url: http://btcmarkets.net
+  x-logo:
+    url: /doc/images/small-logo.png
+    altText: BtcMarkets logo
+  description: '# Introduction
+
+    Welcome to BTC Markets API v3.'
+servers:
+- url: https://api.btcmarkets.net
+  description: Production
+tags:
+- name: Trade APIs
+paths:
+  /v3/trades:
+    get:
+      tags:
+      - Trade APIs
+      operationId: getTrades
+      summary: List Trades
+      description: Retrieves trades and optionally filters by marketId or orderId/clientOrderId. The default behavior when no query parameter is specified is to return your most recent trades for all orders and markets. When a valid order ID is provided, all trades for the order are returned. Providing `marketId` also filters trades. Mixing `orderId` and `marketId` parameters is not supported.
+      parameters:
+      - name: marketId
+        in: query
+        required: false
+        schema:
+          type: string
+          description: optionally filter trades by marketId (e.g. XRP-AUD)
+      - name: orderId
+        in: query
+        required: false
+        schema:
+          type: string
+          description: optionally list all trades for a single order
+      - name: before
+        in: query
+        required: false
+        description: This is part of the pagination parameters.
+        schema:
+          type: integer
+          format: int64
+        example: 78234976
+      - name: after
+        in: query
+        required: false
+        description: This is part of the pagination parameters.
+        schema:
+          type: integer
+          format: int64
+        example: 78234876
+      - name: limit
+        in: query
+        description: This is part of the pagination parameters.
+        required: false
+        schema:
+          type: integer
+          format: int32
+        example: 10
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                basic:
+                  $ref: '#/components/examples/TradeListExample'
+  /v3/trades/{id}:
+    get:
+      tags:
+      - Trade APIs
+      operationId: getTradeById
+      summary: Get Trade by ID
+      description: Retrieves a trade by ID.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+components:
+  examples:
+    TradeListExample:
+      value:
+      - id: '36014819'
+        marketId: XRP-AUD
+        timestamp: '2019-06-25T16:01:02.977000Z'
+        price: '0.67'
+        amount: '1.50533262'
+        side: Ask
+        fee: '0.00857285'
+        orderId: '3648306'
+        liquidityType: Taker
+        clientOrderId: '48'
+        valueInQuoteAsset: '0.44508'
+      - id: '3568960'
+        marketId: GNT-AUD
+        timestamp: '2019-06-20T08:44:04.488000Z'
+        price: '0.1362'
+        amount: '0.85'
+        side: Bid
+        fee: '0.00098404'
+        orderId: '3543015'
+        liquidityType: Maker
+        valueInQuoteAsset: '0.160235'
+      summary: trade list
+x-tagGroups:
+- name: Order Matching
+  tags:
+  - order_status
+  - OrderTypes
+  - StopOrders
+  - ClientOrderId
+  - Timeinforce
+  - TargetAmount
+  - PostOnly
+  - SelfTrade
+  - market_status
+- name: APIs
+  tags:
+  - Market Data APIs
+  - Order Placement APIs
+  - Batch Order APIs
+  - Trade APIs
+  - Fund Management APIs
+  - Account APIs
+  - Report APIs
+  - Misc APIs
+  - ErrorCodes
+- name: WebSocket Feed
+  tags:
+  - WS_Overview
+  - WS_Public_Events
+  - WS_Private_Events
+- name: FIX API
+  tags:
+  - fix_introduction
+  - fix_order_entry
+  - fix_drop_copy
+  - fix_market_data
+  - fix_messages
+x-provenance:
+  method: searched
+  source: https://docs.btcmarkets.net/doc/openapi/index.yaml
+  generated: '2026-10-13'
+  note: Bundled from the provider-published multi-file OpenAPI (index.yaml, path/orders.yaml, components/index.yaml, info/index.yaml); verbatim sources in openapi/source/. Only external file $refs were inlined.

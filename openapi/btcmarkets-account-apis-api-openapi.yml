@@ -1,0 +1,220 @@
+openapi: 3.2.0
+info:
+  version: 3.0.0
+  title: BTC Markets Account APIs API
+  contact:
+    name: API Support
+    email: support@btcmarkets.net
+    url: http://btcmarkets.net
+  x-logo:
+    url: /doc/images/small-logo.png
+    altText: BtcMarkets logo
+  description: '# Introduction
+
+    Welcome to BTC Markets API v3.'
+servers:
+- url: https://api.btcmarkets.net
+  description: Production
+tags:
+- name: Account APIs
+paths:
+  /v3/accounts/me/trading-fees:
+    get:
+      tags:
+      - Account APIs
+      summary: Get Trading Fees
+      description: Returns 30 day trading fee volume plus the trading fee per market that covers `marker` and `taker`.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                basic:
+                  $ref: '#/components/examples/TradingFeeExample'
+      operationId: getV3AccountsMeTradingFees
+      x-operation-id-source: derived
+  /v3/accounts/me/withdrawal-limits:
+    get:
+      tags:
+      - Account APIs
+      summary: Get Withdrawal Limits
+      description: This API returns daily withdrawal limits per asset for your account.
+      operationId: getV3AccountsMeWithdrawalLimits
+      x-operation-id-source: derived
+  /v3/accounts/me/balances:
+    get:
+      tags:
+      - Account APIs
+      summary: Get Balances
+      description: 'Returns list of assets covering the balance, available, and locked amount for each asset due to open orders or pending withdrawals.
+
+        This formula represents the relationship between those three elements: `balance = available + locked`.'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                basic:
+                  $ref: '#/components/examples/BalanceListExample'
+      operationId: getV3AccountsMeBalances
+      x-operation-id-source: derived
+  /v3/accounts/me/transactions:
+    get:
+      tags:
+      - Account APIs
+      summary: Get Transactions
+      description: Returns detailed ledger records for underlying wallets. This API supports pagination.
+      parameters:
+      - name: assetName
+        in: query
+        required: false
+        description: filter transactions for specific asset
+        schema:
+          type: string
+        example: BTC
+      - name: before
+        in: query
+        required: false
+        description: This is part of the pagination parameters.
+        schema:
+          type: integer
+          format: int64
+        example: 78234976
+      - name: after
+        in: query
+        required: false
+        description: This is part of the pagination parameters.
+        schema:
+          type: integer
+          format: int64
+        example: 78234876
+      - name: limit
+        in: query
+        description: This is part of the pagination parameters.
+        required: false
+        schema:
+          type: integer
+          format: int32
+        example: 10
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                basic:
+                  $ref: '#/components/examples/TransactionListExample'
+      operationId: getV3AccountsMeTransactions
+      x-operation-id-source: derived
+components:
+  examples:
+    BalanceListExample:
+      value:
+      - assetName: LTC
+        balance: '5'
+        available: '5'
+        locked: '0'
+      - assetName: ETH
+        balance: '1.07583642'
+        available: '1.0'
+        locked: '0.07583642'
+      summary: balance list example
+    TradingFeeExample:
+      value:
+        volume30Day: '0.0098275'
+        feeByMarkets:
+        - makerFeeRate: '0.00849999'
+          takerFeeRate: '0.00849999'
+          marketId: BTC-AUD
+        - makerFeeRate: '0.00849999'
+          takerFeeRate: '0.00849999'
+          marketId: LTC-AUD
+        - makerFeeRate: '0.0022'
+          takerFeeRate: '0.0022'
+          marketId: LTC-BTC
+      summary: trading fees example
+    TransactionListExample:
+      value:
+      - id: '1759'
+        creationTime: '2015-02-21T21:49:54.911000Z'
+        description: Sell 0.3000BTC @ AUD 200.0000 Trading fee
+        assetName: AUD
+        amount: '0.5082'
+        amountWithSign: '-0.5082'
+        balance: '81.9401'
+        type: Trading Fee
+        recordType: Trade
+        referenceId: '17949'
+      - id: '17958'
+        creationTime: '2015-02-21T21:49:54.906000Z'
+        description: Sell 0.3000BTC @ AUD 200.0000 Trade settled
+        assetName: AUD
+        amount: '60'
+        amountWithSign: '60'
+        balance: '82.4483'
+        type: Sell Order
+        recordType: Trade
+        referenceId: '17949'
+      - id: '15160'
+        creationTime: '2014-11-12T11:30:02.773000Z'
+        description: Sell 0.1000BTC @ AUD 4.5100 Fully matched at 4.5100
+        assetName: BTC
+        amount: '0.1'
+        amountWithSign: '-0.1'
+        balance: '99.144778'
+        type: Sell Order
+        recordType: Trade
+        referenceId: '14435'
+      - id: '8809'
+        creationTime: '2014-10-05T21:18:19.714000Z'
+        description: 'XRP deposit was successful. Reference: 1'
+        assetName: XRP
+        amount: '100'
+        amountWithSign: '100'
+        balance: '100'
+        type: Deposit
+        recordType: Transfer
+        referenceId: '8808'
+      summary: transaction list example
+x-tagGroups:
+- name: Order Matching
+  tags:
+  - order_status
+  - OrderTypes
+  - StopOrders
+  - ClientOrderId
+  - Timeinforce
+  - TargetAmount
+  - PostOnly
+  - SelfTrade
+  - market_status
+- name: APIs
+  tags:
+  - Market Data APIs
+  - Order Placement APIs
+  - Batch Order APIs
+  - Trade APIs
+  - Fund Management APIs
+  - Account APIs
+  - Report APIs
+  - Misc APIs
+  - ErrorCodes
+- name: WebSocket Feed
+  tags:
+  - WS_Overview
+  - WS_Public_Events
+  - WS_Private_Events
+- name: FIX API
+  tags:
+  - fix_introduction
+  - fix_order_entry
+  - fix_drop_copy
+  - fix_market_data
+  - fix_messages
+x-provenance:
+  method: searched
+  source: https://docs.btcmarkets.net/doc/openapi/index.yaml
+  generated: '2026-10-13'
+  note: Bundled from the provider-published multi-file OpenAPI (index.yaml, path/orders.yaml, components/index.yaml, info/index.yaml); verbatim sources in openapi/source/. Only external file $refs were inlined.

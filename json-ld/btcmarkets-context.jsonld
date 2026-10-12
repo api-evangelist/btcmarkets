@@ -1,0 +1,153 @@
+{
+  "@context": {
+    "@vocab": "https://btcmarkets.net/schema#",
+    "schema": "https://schema.org/",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "dcterms": "http://purl.org/dc/terms/",
+    "btcmarkets": "https://btcmarkets.net/schema#",
+    "OrderStatus": "btcmarkets:OrderStatus",
+    "OrderType": "btcmarkets:OrderType",
+    "OrderSide": "btcmarkets:OrderSide",
+    "PlaceOrderRequest": "btcmarkets:PlaceOrderRequest",
+    "marketId": {
+      "@id": "btcmarkets:marketId",
+      "@type": "xsd:string"
+    },
+    "price": {
+      "@id": "btcmarkets:price",
+      "@type": "xsd:string"
+    },
+    "amount": {
+      "@id": "btcmarkets:amount",
+      "@type": "xsd:string"
+    },
+    "type": {
+      "@id": "btcmarkets:type",
+      "@type": "@id"
+    },
+    "side": {
+      "@id": "btcmarkets:side",
+      "@type": "@id"
+    },
+    "triggerPrice": {
+      "@id": "btcmarkets:triggerPrice",
+      "@type": "xsd:string"
+    },
+    "targetAmount": {
+      "@id": "btcmarkets:targetAmount",
+      "@type": "xsd:string"
+    },
+    "timeInForce": {
+      "@id": "btcmarkets:timeInForce",
+      "@type": "xsd:string"
+    },
+    "postOnly": {
+      "@id": "btcmarkets:postOnly",
+      "@type": "xsd:boolean"
+    },
+    "selfTrade": {
+      "@id": "btcmarkets:selfTrade",
+      "@type": "xsd:string"
+    },
+    "clientOrderId": {
+      "@id": "btcmarkets:clientOrderId",
+      "@type": "xsd:string"
+    },
+    "ReplaceOrderRequest": "btcmarkets:ReplaceOrderRequest",
+    "CancelOrderRequest": "btcmarkets:CancelOrderRequest",
+    "orderId": {
+      "@id": "btcmarkets:orderId",
+      "@type": "xsd:string"
+    },
+    "BatchOrderRequest": "btcmarkets:BatchOrderRequest",
+    "placeOrder": {
+      "@id": "btcmarkets:placeOrder",
+      "@type": "@id"
+    },
+    "cancelOrder": {
+      "@id": "btcmarkets:cancelOrder",
+      "@type": "@id"
+    },
+    "BeneficiaryDetail": "btcmarkets:BeneficiaryDetail",
+    "firstName": {
+      "@id": "btcmarkets:firstName",
+      "@type": "xsd:string"
+    },
+    "lastName": {
+      "@id": "btcmarkets:lastName",
+      "@type": "xsd:string"
+    },
+    "businessName": {
+      "@id": "btcmarkets:businessName",
+      "@type": "xsd:string"
+    },
+    "CreateWithdrawRequest": "btcmarkets:CreateWithdrawRequest",
+    "assetName": {
+      "@id": "btcmarkets:assetName",
+      "@type": "xsd:string"
+    },
+    "toAddress": {
+      "@id": "btcmarkets:toAddress",
+      "@type": "xsd:string"
+    },
+    "accountName": {
+      "@id": "btcmarkets:accountName",
+      "@type": "xsd:string"
+    },
+    "accountNumber": {
+      "@id": "btcmarkets:accountNumber",
+      "@type": "xsd:string"
+    },
+    "bsbNumber": {
+      "@id": "btcmarkets:bsbNumber",
+      "@type": "xsd:string"
+    },
+    "bankName": {
+      "@id": "btcmarkets:bankName",
+      "@type": "xsd:string"
+    },
+    "paymentDescription": {
+      "@id": "btcmarkets:paymentDescription",
+      "@type": "xsd:string"
+    },
+    "clientTransferId": {
+      "@id": "btcmarkets:clientTransferId",
+      "@type": "xsd:string"
+    },
+    "beneficiaryDetail": {
+      "@id": "btcmarkets:beneficiaryDetail",
+      "@type": "@id"
+    },
+    "Order": "btcmarkets:Order",
+    "creationTime": {
+      "@id": "btcmarkets:creationTime",
+      "@type": "xsd:string"
+    },
+    "openAmount": {
+      "@id": "btcmarkets:openAmount",
+      "@type": "xsd:string"
+    },
+    "status": {
+      "@id": "btcmarkets:status",
+      "@type": "xsd:string"
+    },
+    "errorMessage": {
+      "@id": "btcmarkets:errorMessage",
+      "@type": "xsd:string"
+    },
+    "CancelOrders": "btcmarkets:CancelOrders",
+    "CancelOrderResponse": "btcmarkets:CancelOrderResponse",
+    "CreateReportRequest": "btcmarkets:CreateReportRequest",
+    "format": {
+      "@id": "btcmarkets:format",
+      "@type": "xsd:string"
+    }
+  },
+  "@type": "schema:Dataset",
+  "schema:name": "BTC Markets API JSON-LD context",
+  "schema:description": "A JSON-LD @context for the objects BTC Markets's own API contract declares: one class per component schema, one property per declared field, typed from the contract. Derived by script (derive-json-ld.py, 2026-10-13) from openapi/btcmarkets-openapi.yml.",
+  "dcterms:created": "2026-10-13",
+  "dcterms:source": [
+    "openapi/btcmarkets-openapi.yml"
+  ]
+}

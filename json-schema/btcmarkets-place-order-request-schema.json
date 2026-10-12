@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/api-evangelist/btcmarkets/main/json-schema/btcmarkets-place-order-request-schema.json",
+  "title": "PlaceOrderRequest",
+  "x-generated": "2026-10-13",
+  "x-method": "derived",
+  "x-generator": "derive-json-schema.py",
+  "x-source": "openapi/btcmarkets-openapi.yml#/components/schemas/PlaceOrderRequest",
+  "type": "object",
+  "required": [
+    "marketId",
+    "price",
+    "amount",
+    "type",
+    "side"
+  ],
+  "properties": {
+    "marketId": {
+      "description": "specify a marketId e.g. BTC-AUD",
+      "type": "string"
+    },
+    "price": {
+      "description": null,
+      "type": "string"
+    },
+    "amount": {
+      "description": null,
+      "type": "string"
+    },
+    "type": {
+      "$ref": "#/schemas/OrderType"
+    },
+    "side": {
+      "$ref": "#/schemas/OrderSide"
+    },
+    "triggerPrice": {
+      "description": "this is mandatory if order type is Stop, Stop Limit or Take Profit",
+      "type": "string"
+    },
+    "targetAmount": {
+      "description": "specifiy target amount when a desired target outcome is required for order execution",
+      "type": "string"
+    },
+    "timeInForce": {
+      "description": "possible values are GTC (default option) , FOK and IOC",
+      "type": "string"
+    },
+    "postOnly": {
+      "description": "if this is a post-only order",
+      "type": "boolean"
+    },
+    "selfTrade": {
+      "description": "A or P",
+      "type": "string"
+    },
+    "clientOrderId": {
+      "description": "a unique order id speciifed by client app.",
+      "type": "string"
+    }
+  }
+}

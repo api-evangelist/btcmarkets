@@ -1,0 +1,1395 @@
+openapi: 3.0.0
+servers:
+    - url: https://api.btcmarkets.net
+      description: Production
+info:
+    $ref: ./info/index.yaml
+externalDocs:
+#    description:
+tags:
+    - name: order_status
+      x-displayName: Order Status
+      description: |
+          An order can have any of the following statuses
+          - `Accepted`: The order has been accepted by the trading platform.
+          - `Placed`: The order has been submitted to the orderbook and appropriate funds are locked.
+          - `Partially Matched`: The order has been partially matched.
+          - `Fully Matched`: The order has been fully matched.
+          - `Cancelled`: The order has been canceled and is no longer in the orderbook.
+          - `Partially Cancelled`: The order has been canceled after being partially executed.
+          - `Failed`: The order failed due to issues; for example, insufficient funds.
+
+          Some of those statuses are considered final. Hence, the order can no longer be changed.
+
+    - name: OrderTypes
+      x-displayName: Order Types
+      description: |
+          The following order types are supported:
+          - Limit
+          - Market
+          - Stop Limit
+          - Stop
+          - Take Profit
+
+
+    - name: StopOrders
+      x-displayName: Stop Orders
+      description: |
+          In general, stop orders stay in the orderbook and are only activated once the trigger price of the order is reached by the market. Depending on the type, upon triggering the order will be placed in the orderbook as a Limit or Market order that will then execute as normal.
+          - For Stop Limit orders, the order type attribute will be "Stop Limit" and an additional field triggerPrice must be supplied.
+          - For Stop orders, the order type attribute will be "Stop" and an additional field triggerPrice must be supplied with the same number conversion as price. When triggerPrice is reached, a market order will be executed.
+          - For Take Profit orders, the order type attribute will be "Take Profit" and an additional field triggerPrice must be supplied with the same number conversion as price. When triggerPrice is reached, a market order will be executed.
+          - For both Stop orders and Take Profit orders (depending on existing orders in the orderbook and market price at the time of triggering) they will be executed similar to Market orders.
+
+
+    - name: ClientOrderId
+      x-displayName: Client Order ID
+      description: |
+        `clientOrderId` is an optional parameter that can be set by the client applications to track orders using their internal order management system. `clientOrderId` is a string field between 1 to 64 with the following characters allowed:
+           `a-z, A-Z, 0-9, -` allowing standard formats like UUID.
+
+           We have tried to distinguish between the exchange `orderId` and `clientOrderId` returning both attributes while also allowing users to retrieve orders based on both attributes. Hence, APIs like `/v3/orders/{id}` use `id` to demonstrate that either the `orderId` or `clientOrderId` can be passed.
+
+          `clientOrderId` is optional for normal order placement. However, it is mandatory if you decide to use batch order placement.
+
+
+    - name: Timeinforce
+      x-displayName: Time in Force
+      description: |
+       `timeInForce` option allows traders to control order lifetime with the following possible values.
+       * `GTC`: good till canceled (the default value if not specified)
+       * `IOC`: immediate or cancel. The order should be canceled immediately after being placed in the orderbook. The order may be matched against existing orders as part of the initial placement in the orderbook, but any volume that is is left from trade matching will be canceled immediately after placement. Therefore, possible results of an order with `IOC` option will be either `Fully Matched`, `Partially Matched`, `Cancelled` or `Partially Cancelled`.
+       * `FOK`: fill or kill. The order is canceled if it's not executed fully at the time of placement. Possible results of an order with `FOK` option will be either `Fully Matched` or `Cancelled` immediately.
+
+       Note: When `postOnly` option is set to `true` then the only possible value for `timeInForce` is `GTC` or do not pass any value for timeInForce.
+
+
+    - name: TargetAmount
+      x-displayName: Desired Target Amount
+      description: |
+       This is an optional parameter that allows traders to instruct the system to `sell` (or `buy`) as many numbers of `instrument` as possible
+       so that the `targetAmount` is reached. For example- as a trader, I'd like to receive $100 (the target amount) by selling as many of my `XRPs` (the actual volume is determined by the system at the time of placing the order) as I can.  The system then makes the best effort to determine the total volume of `XRP` that is needed to sell in order to generate $100, considering all trading fees and partial order match, etc.
+       This feature eliminates the need for traders to calculate how many XRPs are needed before placing an order, which might be a particularly difficult task when the market is moving quickly.
+       This option also works for `Bid` orders with the use case being: I'd like to spend a maximum of $100 on buying `LTC` and the system determines the total volume that I can purchase considering all fees.
+       `targetAmount` option is only applicable to `Market` orders.
+
+
+       Please note that `price` and `volume` are not required when using `targetAmount`.
+
+
+    - name: PostOnly
+      x-displayName: Post Only Orders
+      description: |
+       `postOnly` is an optional boolean flag with true/false value. The default is false for all new orders. When this option is set to `true`, it means the order should only be posted to the orderbook if it does not result in any trades at the time of placement.  If any part of the order results in trade execution, the order will be canceled. Please note: once the order is accepted as part of the initial placement, then it may execute at any later time depending on the market price movements. The option is only applied for the time of placement.
+       The `postOnly` option is only applicable to `Limit` orders.
+        This option is mainly useful for market makers and liquidity providers.
+
+    - name: SelfTrade
+      x-displayName: Self Trade Prevention
+      description: |
+       The `selfTrade` option allows traders to control the possibility of their own orders executing against each other. For instance, if you already have an order in the orderbook to buy 100 `XRP` for the price of 0.50 and then place a new order to sell 100 `XRP` with the same price of 0.50, the new sell order will be canceled immediately and won't be submitted to the orderbook. The existing order (the buy order for 100 XRP) will continue to stay in the orderbook and will work as normal.
+       The same is true also when the new order has the potential to match existing orders partially. So, using the previous example (your existing buy order of 100 `XRP`), if you place a new sell order with the `selfTrade` option to sell 200 `XRP` (given that 100 of those `XRP` will potentially match with an existing order that does not belong to you) then again the entire new sell order will be canceled immediately due to the `selfTrade` option.
+       Please also note that this option is only checked once at the time of order arrival. If the order stays in the orderbook, then this option is not applicable anymore.
+       
+       Possible values for the `selfTrade` option are:
+       - `A`: represents Allowed and means that self trade is allowed. This is the default behavior if `selfTrade` is not specified.
+       - `P`: represents Prevented and means that self trade is prevented
+
+    - name: market_status
+      x-displayName: Market Status
+      description: |
+          Our trading engine uses a number of statuses to assist API clients as they manage their trading business logic. These statuses also open orders during scheduled maintenance and unforeseen service downtime. 
+
+          The market status list covers whether the market is operational, the type of orders that can be placed, whether open orders can be cancelled, and whether any order matching can occur.
+
+          
+
+          Market Status Options:
+          - `Offline`: The market is currently offline and order placement is not available at this time.
+          - `Cancel Only`: This market currently allows cancelling existing orders only. Order placement is temporarily suspended.
+          - `Post Only`: The market currently only accepts new orders with postOnly flag set to true. Orders will be placed in the orderbook but no order match will occur.
+          - `Limit Only`: This market currently accepts limit orders only.
+          - `Online`: The market is operating normally. All order types may be submitted and any matching can occur.
+
+    - name:  ErrorCodes
+      x-displayName: List of API Error Codes
+      description: |
+        Below covers all the error codes returned by API.
+
+
+        | Error Code       |  Description              |        Category
+        |------------|:--------------------------------|:------------------|
+        | InvalidPrice     | invalid order price   | orders   |
+        | InvalidAmount     | invalid order amount   | orders |
+        | InvalidTriggerPrice     |  invalid trigger price  | orders |
+        | InvalidTargetAmount     |   |    orders |
+        | InvalidOrderSide     |   |   orders |
+        | InvalidOrderType     |   |   orders |
+        | TradingNotAvailable     |   |   orders |
+        | TradingNotAvailableForMarket     |   | orders |
+        | OrderTypeNotAvailable     |   |  orders |
+        | InvalidTimeInForceOption     |   |  orders |
+        | InvalidSelfTradeOption     |   |  orders |
+        | InvalidOrderId     |   |  orders |
+        | OrderNotFound     |   |  orders |
+        | DuplicateClientOrderId     |   |  orders |
+        | InvalidClientOrderId     |   |  orders |
+        | InsufficientFund     |   |  orders |
+        | OrderAlreadyCancelled     |   |  orders |
+        | OrderBeingCancelled     |   |  orders |
+        | OrderStatusIsFinal     |   |  orders |
+        | TradeNotFound     |   |  orders |
+        | IncorrectDecimalPoints     |   |  orders |
+        | FeatureNotAvailableForMarket     |   |  orders |
+        | InvalidAPIKey     |   |  auth |
+        | InvalidAuthTimestamp     |   |  auth |
+        | InvalidAuthSignature     |   |  auth |
+        | InsufficientAPIPermission     |   |  auth |
+        | InvalidMarketId     |  market symbol is invalid  |   common  |
+        | InvalidAccount     | something is wrong with account setup  |  common |
+        | InvalidBatchRequest     |  |  common |
+        | InvalidParameterCombination     |  |  common |
+        | DuplicateIdInRequest     |  |  common |
+        | InvalidIdParameter     |  |  common |
+        | InvalidPaginationParameter     |  |  common |
+        | InvalidFeatureCombination     |  |  common |
+        | MissingArgument     |  |  common |
+        | FeatureNotAvailable     |  |  common |
+        | MissingArgument     |  |  common |
+        | InvalidAssetName     |  |  common |
+        | AmountExceedAvailableFund     |  |  fund |
+        | AmountIsTooLow     |  | fund |
+        | WithdrawIsNotAvailable     |  |  fund |
+        | TransferNotFound     |  |  fund |
+        | InvalidTransferBeneficiaryDetail     |  beneficiaryDetail is missing or invalid (mandatory from 2026-06-15 12:00 AEST to comply with AUSTRAC travel rule)  |  fund |
+        | DepositAddressNotAvailable     |  |  fund |
+        | InvalidAddress     |  |  fund |
+        | MarketNotFound     |  |  market |
+        | InvalidTimeWindow     |  |  market |
+        | InvalidTimestamp     |  |  market |
+        | InvalidOrderbookLevel     |  |  market |
+        | ReportNotFound     |  |  report |
+        | InvalidReportParameter     |  |  report |
+        | BadRequest     |  |  HTTP status |
+        | UnAuthorized     |  |  HTTP status |
+        | Forbidden     |  |  HTTP status |
+        | NotFound     |  |  HTTP status |
+        | TooManyRequests     |  |  HTTP status |
+        | InternalServerError     |  |  HTTP status |
+        | BadGateway     |  |  HTTP status |
+
+
+    - name: WS_Overview
+      x-displayName: WebSocket Overview
+      description: |
+
+        BTC Markets' WebSocket feed provides real-time market data covering orderbook updates, order life cycle, and trades.
+
+        In order to start receiving real-time messages, a WebSocket connection needs to be made. This should be followed by a message to subscribe to the channels and marketIds you are interested in.
+
+        ### Endpoint
+
+        The endpoint for WebSocket v2 is: `wss://socket.btcmarkets.net/v2`.
+
+        ### Channels
+          `tick`, `trade`, `orderbook`, `orderbookUpdate`, `orderChange`, `fundChange`, `heartbeat`
+
+        ### MarketIds
+        MarketIds represent a list of markets and are used to filter events for only the specific markets you are interested in.
+
+        You should be able to get a list of active markets from here:
+        https://api.btcmarkets.net/v3/markets
+
+        Format: `BTC-AUD`, `XRP-BTC`, etc.
+
+        Note: marketIds are only applicable to public events (e.g. `tick`, `orderbook`, `trade`).
+
+        ### Message Types
+        All messages published include a `json` attribute called `messageType` that represents the type of event that is being received.
+
+        Those message types events include:
+        - `tick`
+        - `trade`
+        - `orderbook`
+        - `orderbookUpdate`
+        - `orderChange`
+        - `fundChange`
+        - `error`
+        - `heartbeat`
+
+        ### Subscriptions
+        Sending a `subscribe` message allows you to start receiving events for the specified channels and marketIds.  If you need to change your subscription, then simply send a new `subscribe` message with new channel names and marketIds.
+
+        ### Managing Subscriptions
+         While sending a `subscribe` message works in most situations, there may be times you want to have the flexibility to add or remove subscriptions instead of subscribing to all channels/markets at the same time.
+
+         In those situations, send the same subscription message (all rules apply for authentication, marketIds, etc.) and the message type will be `addSubscription` or `removeSubscription`. If you need to remove the subscription for all markets for a given channel, just send an empty list of marketIds.
+
+         Note when using `addSubscription` and `removeSubscription`:
+         * In order to use those messages, you will need an existing subscription, so make sure to send a valid subscription message at least once.
+         * With your subscription message (and also add/remove messages) send the additional parameter: `clientType: "api"`.
+
+
+
+        ### Client Libraries
+        Below are working examples of how to connect to this WebSocket feed in different languages:
+
+        * Javascript: https://github.com/ngin-io/websocket-client-node
+        * Java: https://github.com/ngin-io/websocket-client-java
+        * Python: https://github.com/ngin-io/websocket-client-python
+
+        ### Rate Limit
+        New connections to the WebSocket feed are rate limited to 3 attempts per 10 seconds per IP. Frequent WebSocket connections that exceed the rate limit will be closed by the server.
+
+        ### Connection Issues
+        From time to time, your WebSocket connection may be disconnected (e.g. as we upgrade software on our servers). We recommend adding logic to your client in order to refresh your connection every 24 hours or in case of the connection dropping out.
+
+
+    - name: WS_Public_Events
+      x-displayName: WebSocket Public Events
+      description: |
+
+        ## Tick Event
+        The `tick` event is published every time `lastPrice`, `bestBid`, or `bestAsk` is updated for a market which is the result of orderbook changes or trade matches.
+
+        Sample event:
+          ```javscript
+          { marketId: 'XRP-AUD',
+            timestamp: '2021-12-01T05:47:35.185Z',
+            bestBid: '1.4028',
+            bestAsk: '1.4047',
+            lastPrice: '1.4031',
+            volume24h: '1055000.9042866',
+            volumeQte24h: '1480271.76880452',
+            price24h: '0.0191',
+            pricePct24h: '1.38',
+            messageType: 'tick',
+            low24h: '1.3862',
+            high24h: '1.45',
+            snapshotId: 1638337655185000
+          }  
+          ```
+
+        ## Trade Event
+          In order to receive `trade` events, please add `trade` to the list of channels when subscribing via WebSocket.
+
+        Sample event:
+
+          ```javscript
+          { marketId: 'BTC-AUD',
+            timestamp: '2019-04-08T20:54:27.632Z',
+            tradeId: 3153171493,
+            price: '7370.11',
+            volume: '0.10901605',
+            side: 'Ask',
+            messageType: 'trade'
+          }
+          ```
+        ## Orderbook Event
+          In order to receive `orderbook` events, please add `orderbook` to the list of channels when subscribing via WebSocket. The current orderbook event represents the latest orderbook state. A maximum of 50 bids and asks are included in each event.
+
+          For efficiency, the `bids` and `asks` are are published as arrays of `tuples` representing `[price, volume]` for each order in the orderbook.
+
+        Sample event:
+
+          ```javascript
+          { marketId: 'BTC-AUD',
+            timestamp: '2019-04-08T22:23:37.643Z',
+            bids:
+              [ [ '7418.46', '0.04' ],
+                [ '7418.45', '0.56' ],
+                [ '7100', '0.01' ] ]
+              asks:
+                [ [ '7437.53', '0.76' ],
+                  [ '7437.54', '0.3646349' ],
+                  [ '7446.94', '0.6' ],
+                  [ '7700', '0.1' ] ]
+              messageType: 'orderbook',
+              snapshotId: 1638338323367000
+          }
+          ```
+        ## OrderbookUpdate Event
+        In many cases, it's more appropriate to maintain a local copy of the exchange orderbook by receiving only updates instead of the entire orderbook.
+
+        Some advantages of using `orderbookUpdate` as opposed to `orderbook` are:
+        1. `orderbook` event only delivers top 50 orders, whereas `orderbookUpdate` covers the entire orderbook.
+        2. `orderbook` always uses larger bandwidth due to the size of the messages that include 50 bids/asks, whereas `orderbookUpdate` only delivers small incremental changes.
+        3. We make the best effort to deliver all individual updates to the orderbook via `orderbookUpdate` messages. However, `orderbook` may only send a single message if two updates happen at a very close millisecond interval.
+
+        ### Orderbook Snapshot Message:
+
+        Subscribing to the `orderbookUpdate` channel allows you to receive a snapshot of the orderbook at first (immediately after subscription), and then the subsequent messages only provide updates to the orderbook.
+        The initial orderbook snapshot message covers all bids/asks represented as arrays of [price, volume, count] tuples as well as `snapshot:true` attribute.
+
+        Sample snapshot message:
+
+         ```javascript
+          { marketId: 'LTC-AUD',
+            snapshot: true,
+            timestamp: '2020-01-08T19:47:13.986Z',
+            snapshotId: 1578512833978000,
+              bids:
+              [ [ '99.57', '0.55', 1 ],
+                [ '97.62', '3.20', 2 ],
+                [ '97.07', '0.9', 1 ],
+                [ '96.7', '1.9', 1 ],
+                [ '95.8', '7.0', 1 ] ],
+              asks:
+                [ [ '100', '3.79', 3 ],
+                  [ '101', '6.32', 2 ] ],
+              messageType: 'orderbookUpdate'
+          }
+          ```
+
+
+         ### Orderbook Update Message:
+
+         The message format for subsequent orderbook updates is the same as the initial snapshot except that it does not have the element `snapshot:true` in it.
+         The subsequent messages only provide updates to the orderbook. The update message is in the form of an array of [price, volume, count] tuples aggregating order volumes for a given price and total number of orders for that price.
+         For instance, ["99.57","0.55",2] means the total volume of bids for the price of `99.57` is `0.55` and there is a single order with that price.
+
+         Sample update message:
+
+         ```javascript
+          { marketId: 'LTC-AUD',
+            timestamp: '"2020-01-08T19:47:24.054Z',
+            snapshotId: 1578512844045000,
+            bids:  [ ['99.81', '1.2', 1 ], ['95.8', '0', 0 ]],
+            asks: [ ['100', '3.2', 2 ] ],
+            messageType: 'orderbookUpdate',
+            checksum: '3743243528'
+          }
+          ```
+
+         ### How to use Orderbook Updates:
+
+         In the above sample update message:
+         * A new bid order has been added to the orderbook with a price of `99.81` and total volume of `1.2`.
+         * The bid order with the price of `95.8` has been removed from the orderbook (hence both the volume and count are zero).
+         * The total volume and order count for the ask order with a price of 100 have been changed. The new total volume is `3.2` and there are two orders with that price.
+
+
+         Assuming you have a local copy of the exchange orderbook (as per the sample snapshot above), then applying orderbook update means:
+         * Add a new bid order tuple with price of `99.81` to your orderbook copy.
+         * Remove the bid order tuple with price of `95.8` from your orderbook copy.
+         * Replace the ask order tuple with price of `100` with new volume and count in your orderbook copy.
+
+
+         ### Maintaining a Local Copy of the Exchange Orderbook
+
+         The following steps can be used to maintain an up-to-date copy of the exchange orderbook for a given market:
+
+         * Subscribe to `orderbookUpdate` channel and provide a marketId.
+         * Start to queue all incoming messages.
+         * As soon as you receive a message with `snapshot:true`, keep it as your local orderbook copy.
+         * Iterate through the items in the queue and apply changes to your local orderbook copy.
+         * When applying items from the queue, disregard items with a snapshotId smaller or equal to the snapshotId of your local orderbook copy.
+         * Once all items in the queue are processed, your local orderbook copy is up to date.
+         * Now apply all incoming messages as they arrive.
+
+         It's a good practice to refresh your copy at some interval (e.g. once every few hours).
+
+         #### Orderbook Update Checksum
+         Every orderbookUpdate event will have a checksum number as part of the message. The checksum is a CRC32 value based on the top 10 bids and top 10 asks that can be used by a client application to verify that the local orderbook data is in the correct state. It can be used as a signal to refresh the orderbook in case the data is out of date.
+         
+         Please refer to the following sample as a guide to generate checksum for orderbookUpdate events:
+         * https://github.com/ngin-io/websocket-checksum
+
+
+        ## Heartbeat Event
+          If you subscribe to `heartbeat` event then the server will send you a heartbeat event every five seconds.
+
+          heartbeat event:
+            ``` javascript
+            {
+              messageType: 'heartbeat',
+              channels: [
+              {
+                name: 'orderChange'
+              },
+              {
+                name: 'orderbook',
+                marketIds: [
+                  'BTC-AUD',
+                  'XRP-AUD'
+                ]
+              },
+              {
+                name: 'heartbeat'
+              }
+              ]
+            }
+            ```
+            Note: Once a new subscription request is confirmed, a single `heartbeat` event is published to the client in order to confirm the connection is working. This is regardless of requesting to subscribe to the `heartbeat` channel.
+
+
+        ## Error Event
+          In case of errors, a message type of `error` is published.
+
+          * Authentication error
+          * Invalid input error
+          * Internal server error
+          * Throttle error
+
+          Sample error events:
+
+          * Invalid Channel names
+          ```javascript
+          {
+              messageType: 'error',
+              code: 3,
+              message: 'invalid channel names'
+          }
+          ```
+
+          * Invalid MarketIds
+          ```javascript
+          { messageType: 'error',
+            code: 3,
+            message: 'invalid marketIds'
+          }
+          ```
+
+          * Authentication error
+          ``` javascript
+          { messageType: 'error',
+            code: 1,
+            message: 'authentication failed. invalid key'
+          }
+          ```
+
+        ## Sample Code (javascript)
+
+          The sample code below connects to the `tick` channel. The same code can be used to subscribe to other public channels, including `heartbeat`.
+
+
+          ```javascript
+          const WebSocket = require('ws');
+          const ws = new WebSocket('wss://socket.btcmarkets.net/v2');
+
+          var request = {
+            marketIds:marketIds,
+            channels: channels,
+            messageType: 'subscribe'
+          }
+
+          ws.on('open', function open() {
+            ws.send(JSON.stringify(request));
+          });
+
+          ws.on('message', function incoming(data) {
+            console.log(data);
+          });
+          ```
+
+    - name: WS_Private_Events
+      x-displayName: WebSocket Private Events
+      description: |
+
+        ## Authenticated Events
+          Receiving events about the life cycle of your orders requires sending authentication information when subscribing to events. The authentication is similar to public trading API authentication (using your API key and secret to sign  the message) when subscribing via WebSocket.
+
+        Below is sample `javascript` code with authentication:
+
+          ```javascript
+          const crypto = require('crypto');
+          const WebSocket = require('ws');
+
+          const key = 'your api key';
+          const secret = 'your api key secret';
+
+          const ws = new WebSocket('wss://socket.btcmarkets.net/v2');
+
+          const now = Date.now();
+          const strToSign =  "/users/self/subscribe" + "\n" + now;
+          const signature = signMessage(secret, strToSign);
+
+          var request = {
+            marketIds:['BTC-AUD'],
+            channels: ['orderChange', 'heartbeat'],
+            key: key,
+            signature: signature,
+            timestamp: now,
+            messageType: 'subscribe'
+          }
+
+          ws.on('open', function open() {
+            ws.send(JSON.stringify(request));
+          });
+
+          ws.on('message', function incoming(data) {
+            console.log(data);
+          });
+
+          function signMessage(secret, message) {
+            var key = Buffer.from(secret, 'base64');
+            var hmac = crypto.createHmac('sha512', key);
+            var signature = hmac.update(message).digest('base64');
+            return signature;
+          }
+          ```
+
+        ## Order Life Cycle Events
+
+          Below are events that are published for every step of order processing.
+
+
+          ### Placed
+
+          ``` javascript
+          { orderId: 79003,
+            marketId: 'BTC-AUD',
+            side: 'Bid',
+            type: 'Limit',
+            openVolume: '1',
+            status: 'Placed',
+            triggerStatus: '',
+            trades: [],
+            timestamp: '2019-04-08T20:41:19.339Z',
+            messageType: 'orderChange',
+            clientOrderId: 'abc-id'
+          }
+          ```
+
+          ### Fully Matched
+
+          ```javscript
+          { orderId: 79033,
+            marketId: 'BTC-AUD',
+            side: 'Bid',
+            type: 'Limit',
+            openVolume: '0',
+            status: 'Fully Matched',
+            triggerStatus: '',
+            timestamp: '2019-04-08T20:50:39.658Z',
+            trades: [{
+                       tradeId: 31727,
+                       price: '0.1634',
+                       volume: '10',
+                       fee: '0.001',
+                       liquidityType: 'Taker',
+                       valueInQuoteAsset: '1.634'
+                     }],
+            messageType: 'orderChange',
+            clientOrderId: 'abc-id'
+          }
+          ```
+
+          ### Cancelled
+          ```javscript
+          { orderId: 79003,
+            marketId: 'BTC-AUD',
+            side: 'Bid',
+            type: 'Limit',
+            openVolume: '1',
+            status: 'Cancelled',
+            triggerStatus: '',
+            trades: [],
+            timestamp: '2019-04-08T20:41:41.857Z',
+            messageType: 'orderChange',
+            clientOrderId: 'abc-id'
+          }
+          ```
+
+          ### Partially Matched
+          ```javscript
+          { orderId: 79003,
+            marketId: 'BTC-AUD',
+            side: 'Bid',
+            type: 'Limit',
+            openVolume: '1',
+            status: 'Partially Matched',
+            triggerStatus: '',
+            timestamp: '2019-04-08T20:41:41.857Z',
+            trades: [{
+                       tradeId: 31927,
+                       price: '0.1634',
+                       volume: '5',
+                       fee: '0.001',
+                       liquidityType: 'Taker',
+                       valueInQuoteAsset: '0.867'
+                     }],
+            messageType: 'orderChange',
+            clientOrderId: 'abc-id'
+          }
+          ```
+
+          ### Triggered
+          This event is published when `Stop Limit` orders are triggered.
+
+          ```javscript
+          { orderId: 7903,
+            marketId: 'BTC-AUD',
+            side: 'Bid',
+            type: 'Limit',
+            openVolume: '1.2',
+            status: 'Placed',
+            triggerStatus: 'Triggered',
+            trades: [],
+            timestamp: '2019-04-08T20:41:41.857Z',
+            messageType: 'orderChange'
+          }
+        ```
+
+        ### Notes:
+
+          * `Fully Matched` and `Partially Matched` events also include a list of trades that are the result of trade execution for that specific instance.
+          * `Fully Matched` and `Partially Matched` events include the `valueInAssetQuote` attribute represents trade value that is price * amount
+          * In the case that two or more events are published by trading engine at the same time, only the last event is published. For instance, in the case of a `Stop` order being triggered and matched at the same time, a single event is published.
+
+
+        ## Fund Transfer Events
+          These events are published when deposits or withdrawals of funds are requested by a user or approved by the system (and result in balance updates). The channel name used is `fundChange`.
+
+        ```javscript
+        {
+          fundtransferId: 276811,
+          type: 'Deposit',
+          status: 'Complete',
+          timestamp: '2019-04-16T01:38:02.931Z',
+          amount: '0.001',
+          currency: 'BTC',
+          fee: '0',
+          messageType: 'fundChange'
+        }
+        ```
+
+        Note: The status of a withdraw request is `Pending Authorization` when it's first requested and before it becomes `Complete`.
+
+    - name: fix_introduction
+      x-displayName: FIX API Overview
+      description: |
+
+        ## Introduction
+        FIX (Financial Information eXchange) is a standard message protocol used to interact with trading systems for placing and canceling orders. The FIX interface is based on the FIX 4.4 specification.
+
+        Please contact the BTC Markets support team and complete the account verification process to gain secure access to the FIX interface.
+
+        ## FIX Interfaces
+        BTC Markets offers the existing FIX order-entry interface and three new interfaces in preview. All four share the FIX 4.4 specification, session layer, authentication and data dictionary. Each preview interface has its own section below.
+
+        | Interface | Purpose | Client sends | Server delivers | Endpoint |
+        |---|:---|:---|:---|:---|
+        | Existing FIX order entry | Place and cancel orders | Logon, order entry, cancel and status requests | Execution Reports for account activity, including orders placed via REST | tcp+ssl://fix.btcmarkets.net:443 |
+        | [FIX Order Entry (Preview)](#tag/fix_order_entry) | Place and cancel orders with lower round-trip latency | Same as existing FIX order entry | Execution Reports only for activity on the current FIX session | Dedicated, provided during onboarding |
+        | [FIX Drop Copy (Preview)](#tag/fix_drop_copy) | Receive-only copy of all account activity | Logon only (plus session-level messages) | Execution Reports for all account activity, from any origin (REST or FIX) | Dedicated, provided during onboarding |
+        | [FIX Market Data (Preview)](#tag/fix_market_data) | Real-time order book data | Logon and Market Data Requests | Order book snapshots and incremental updates | Dedicated, provided during onboarding |
+
+        The connectivity, endpoint, rate limit and maintenance details below describe the existing FIX order-entry interface.
+
+        ### Connectivity
+        Clients must establish a secure connection to the FIX gateway in order to establish a session.
+
+        ### Endpoint 
+        tcp+ssl://fix.btcmarkets.net:443
+
+        ### Rate Limit
+        All requests are limited to 600 calls per 10 seconds per FIX session. An account can establish and maintain a single FIX session only.
+        
+        ### FIX Maintenance
+        The FIX engine will go down on a daily basis at UTC time 17:00:00 for maintenance and updates.
+
+        The FIX engine will have a daily maintenance window between 5 p.m. UTC to 5:10 p.m. UTC. During this time, all sessions will be closed. Clients must establish a new connection and log on again. All sessions must have the sequence numbers reset to 1.
+
+
+        ## Authentication
+        To establish a FIX connection, an API key must be set up (using a similar process as required for the REST API). This will be the SenderCompID for messages sent by the Client.
+
+        Authentication will be verified at logon. The raw data element within the logon message must contain a valid signature, which will be validated by the FIX engine.
+
+        The prehash string for the signature input contains the following fields concatenated with an empty string:
+        
+        `seqNum + "A" + apiKey + timestamp`
+
+        `timestamp` is taken from the logon message SendingTime tag (converted to epoch value in milliseconds).
+
+        The following steps demonstrate how to convert the prehash string to a signature:
+
+        ``` javascript
+          const msg = seqNum+'A'+apiKey+timestamp
+          var buffer = Buffer.from(apiPrivateKey, 'base64');
+          var hmac = crypto.createHmac('sha512', buffer);
+          const signature = hmac.update(preHashString).digest('base64');
+        ```        
+        
+        
+        ### FIX Workflow Steps
+        * Connection
+        * Logon and Authentication
+        * Synchronizing sequence numbers
+        * Place or cancel orders
+
+        ## FIX Client Libraries
+        If you are starting to develop your FIX client application, the following code samples can be useful. These demonstrate authentication and the ability to place and cancel orders:
+
+        * Java : https://github.com/ngin-io/fix-client-java
+
+        * Node : https://github.com/ngin-io/fix-client-node
+                
+        ## FIX Naming Convention vs REST API
+        BTC Markets has implemented common messaging and naming conventions used by other crypto exchanges, while also ensuring compatibility with the REST API. The table below shows the FIX and corresponding REST API names.
+
+        | FIX Name              | REST API       |
+        |-----------------------|:---------------|
+        | Symbol                | marketId       |
+        | OrdType               | type           |
+        | OrderQty              | amount         |
+        | ClOrdID               | clientOrderId  |
+        | SelfTradePrevention   | selfTrade      |
+        | ExecInst              | postOnly       |
+        | LeavesQty             | openAmount     |
+
+    - name: fix_messages
+      x-displayName: FIX Messages
+      description: |
+        ## Overview
+        All messages have an attribute called `MsgType` which represents the type of message to be communicated with the FIX engine.
+
+        ## Messages From Client to Server
+
+        | Message Type               | Identifier |
+        |-----------------------------|:----------|
+        | Logon                       | A         |
+        | Heartbeat                   | 0         |
+        | Test Request               | 1         |
+        | Logout                      | 5         |
+        | New Single Order            | D         |
+        | Cancel Order                | F         |
+        | Order Status                | H         |
+        | Order Mass Cancel Request   | q         |
+
+        ## Messages From Server to Client
+
+        | Message Type               | Identifier |
+        |-----------------------------|:----------|
+        | Logon                       | A         |
+        | Heartbeat                   | 0         |
+        | Test Request               | 1         |
+        | Logout                      | 5         |
+        | Order Execution Report      | 8         |
+        | Order Cancel Reject         | 9         |
+        | Order Mass Cancel Report    | r         |
+        | Business Message Reject     | j         |
+
+        ## Common Message Header
+        All messages must include the following header:
+
+        | Tag | Name          | Description                                     |
+        |-----|---------------|:------------------------------------------------|
+        | 8   | BeginString   | Must be FIX.4.4                                 |
+        | 9   | BodyLength    | Length of the message body in bytes             |
+        | 35  | MsgType       | e.g. D                                          |
+        | 49  | SenderCompID  | API key (similar API keys used for REST APIs)   |
+        | 56  | TargetCompID  | Must be BTCM (for messages from the client)     |
+        | 34  | MsgSeqNum     | FIX Sequence Number                             |
+        | 52  | SendingTime   | Sender time                                     |
+        | 10  | CheckSum      | FIX computed checksum                           |
+
+        ## Data Dictionary
+
+        ### Side
+
+        | Value | Description |
+        |-------|:------------|
+        | 1     | BUY         |
+        | 2     | SELL        |
+
+        ### OrdType
+
+        | Value | Description |
+        |-------|:------------|
+        | 1     | Market      |
+        | 2     | Limit       |
+        | 3     | Stop        |
+        | 4     | Stop Limit  |
+
+        ### TimeInForce
+
+        | Value | Description                  |
+        |-------|:-----------------------------|
+        | 1     | Good Till Cancel (GTC)       |
+        | 3     | Immediate or Cancel (IOC)    |
+        | 4     | Fill Or Kill (FOK)           |
+
+        ### ExecInst
+
+        | Value | Description       |
+        |-------|:------------------|
+        | 6     | Post only order   |
+
+        ### SelfTradePrevention
+
+        | Value | Description          |
+        |-------|:---------------------|
+        | P     | Prevent self trade   |
+        | A     | Allow self trade     |
+
+        ### ExecType
+
+        | Value | Description       |
+        |-------|:------------------|
+        | 0     | New               |
+        | 4     | Canceled          |
+        | 8     | Rejected          |
+        | F     | Trade             |
+        | I     | Order Status      |
+        | L     | Triggered Order   |
+
+        ### OrdStatus
+
+        | Value | Description         |
+        |-------|:--------------------|
+        | 0     | New                 |
+        | 1     | Partially Filled    |
+        | 2     | Filled              |
+        | 4     | Canceled            |
+        | 8     | Rejected            |
+
+        ### OrdType
+
+        | Value | Description   |
+        |-------|:--------------|
+        | 1     | Market        |
+        | 2     | Limit         |
+        | 3     | Stop          |
+        | 4     | Stop Limit    |
+
+        ### OrdRejReason
+
+        | Value | Description          |
+        |-------|:---------------------|
+        | 101   | INPUT_ERROR          |
+        | 102   | AUTH_ERROR           |
+        | 103   | SERVER_ERROR         |
+        | 104   | THROTTLED            |
+        | 105   | INSUFFICIENT_FUNDS   |
+        | 99    | OTHER                |
+
+        ### CxlRejReason
+
+        | Value | Description              |
+        |-------|:-------------------------|
+        | 0     | TOO_LATE_TO_CANCEL       |
+        | 1     | UNKNOWN_ORDER            |
+        | 3     | ORDER_IN_PENDING_CANCEL  |
+        | 4     | ORDER_ALREADY_CANCELLED  |
+        | 101   | INPUT_ERROR              |
+        | 102   | AUTH_ERROR               |
+        | 103   | SERVER_ERROR             |
+        | 104   | THROTTLED                |
+        | 99    | OTHER                    |
+                
+        ### MassCancelRequestType
+                
+        | Value | Description                   |
+        |-------|:------------------------------|
+        | 1     | CANCEL_ORDERS_FOR_SYMBOL      |
+        | 7     | CANCEL_ALL_ORDERS             |
+                
+        ### MassCancelResponse
+                
+        | Value | Description                   |
+        |-------|:------------------------------|
+        | 0     | CANCEL_REQUEST_REJECTED       |
+        | I     | CANCEL_REQUEST_INITIATED      |
+                
+        ### MassCancelRejectReason
+                
+        | Value | Description          |
+        |-------|:---------------------|
+        | 99    | OTHER                |
+        | 101   | INPUT_ERROR          |
+        | 102   | AUTH_ERROR           |
+        | 103   | SERVER_ERROR         |
+                
+        ### CancelOrdersOnDisconnect
+
+        | Value | Description                                       |
+        |-------|:--------------------------------------------------|
+        | 0     | No orders will be canceled on disconnect or logout |
+        | 1     | Cancel all orders on disconnect only              |
+        | 2     | Cancel all orders on logout only                  |
+        | 3     | Cancel all orders on disconnect or logout         |
+
+        ### BusinessRejectReason
+
+        | Value | Description |
+        |-------|:------------|
+        | 99    | OTHER       |
+        
+
+
+        ## Logon (A)
+
+        The Logon message is sent by the Client to initiate a FIX session. Logon must be the first message immediately after the connection is established. Only one FIX session can be established per connection, and any additional Logon messages will be rejected. A corresponding Logon message will be returned to the Client. As with any other FIX message, the RawDataLength should precede the RawData.
+        
+        | Tag   | Name                       | Example Value | Description                                           |
+        |-------|----------------------------|:--------------|:------------------------------------------------------|
+        | 98    | EncryptMethod              | 0             | Must be set to "0" (None). Encryption is not supported |
+        | 108   | HeartBInt                  | 30            | Must be set to "30"                                   |
+        | 95    | RawDataLength              | ...           | Size of RawData                                       |
+        | 96    | RawData                    | 8f7e...4783   | Signature                                             |
+        | 35002 | CancelOrdersOnDisconnect   | 0             | [Reference](#cancelordersondisconnect)                |
+
+        
+        A sample pretty printed FIX Logon message looks as follows:
+        
+        ``` javascript
+          8=FIX.4.4\u00019=207\u000135=A\u000134=1\u000149=api-key\u000152=20220825-00:56:36.854\u000156=BTCM\u000198=0\u0001108=30\u0001141=Y\u000195=88\u000196=cktgFTtk69umyx2n76JWo5RspF6Z898Op1yISR60tLUgqb4RtxH0WiOCLEAuqFC38RzIofWbfXs8oywWiijabc==\u000135002=0\u000110=015\u0001
+        ``` 
+
+
+        ## Logout (5)
+        The logout message is sent by the Client or Server to close a session gracefully.
+
+        ## Heartbeat (0)
+        Heartbeat messages can be sent by both the Client and Server if no messages have been sent for 30 seconds (or as agreed at Logon message request).
+
+        | Tag  | Name       | Example Value | Description                                            |
+        |------|------------|:--------------|:-------------------------------------------------------|
+        | 112  | TestReqID  | TEST          | Echoed back if responding back to Test Request (1)     |
+
+        ## Test Request (1)
+        Test messages can be sent by both the Client or Server.
+
+        | Tag  | Name       | Example Value | Description                                            |
+        |------|------------|:--------------|:-------------------------------------------------------|
+        | 112  | TestReqID  | TEST          | Indicates a string that is expected to be echoed back in the next heartbeat |
+
+        ## New Single Order Request (D)
+        New single order messages can be sent by the Client to enter a new single order.
+
+        | Tag   | Name                  | Example Value | Required Y/N | Description                                                                 |
+        |-------|-----------------------|:--------------|:-------------|:----------------------------------------------------------------------------|
+        | 11    | ClOrdID               | order123      | Y            | Client order ID is a string field allowing up to 64 characters: a-z, A-Z, 0-9, and standard formats like UUID |
+        | 55    | Symbol                | BTC-AUD       | Y            |                                                                            |
+        | 40    | OrdType               | 2             | Y            | [Reference](#ordtype)                                                       |
+        | 38    | OrderQty              | 1.1           | Y            | Order quantity                                                              |
+        | 44    | Price                 | 8000          | N            | Limit price - required for OrdType = 2 or 4                                 |
+        | 99    | StopPx                | 9000          | N            | Stop price - required for OrdType = 3 or 4                                  |
+        | 54    | Side                  | 1             | Y            | [Reference](#side)                                                          |
+        | 59    | TimeInForce           | 1             | Y            | [Reference](#timeinforce)                                                   |
+        | 18    | ExecInst              | 6             | N            | [Reference](#execinst) Defaults to not post only if not specified           |
+        | 7928  | SelfTradePrevention   | P             | N            | [Reference](#selftradeprevention) Defaults to allow self trade if not specified |
+
+        ## Cancel Order Request (F)
+        A cancel order request can be sent by the Client to cancel an existing order. Either the OrderID or the OrigClordID must be provided.
+
+        | Tag  | Name        | Example Value | Description                                    |
+        |------|-------------|:--------------|:-----------------------------------------------|
+        | 37   | OrderID     | 123456        | Order ID for the original order (system generated) |
+        | 41   | OrigClOrdID | order123      | Original client order ID                       |
+        | 11   | ClOrdID     | cxl123        | Client Order ID of this cancel request         |
+
+        ## Order Mass Cancel Request (q)
+        Order Mass Cancel request can be sent by the Client to cancel all open orders for a given symbol or all open orders for the client account.
+
+        | Tag  | Name                   | Example Value | Required Y/N | Description                                                   |
+        |------|------------------------|:--------------|:-------------|:--------------------------------------------------------------|
+        | 11   | ClOrdID                | order123      | Y            | Client Order ID to uniquely identify the mass cancel request  |
+        | 530  | MassCancelRequestType  | 1             | Y            | [Reference](#masscancelrequesttype)                           |
+        | 55   | Symbol                 | BTC-AUD       | N            | Identifies symbol associated with this request, required if MassCancelRequestType = 1 |
+
+        ## Order Status Request (H)
+        The order status request message can be sent by the Client to get the status of an order. Either the OrderID or the ClOrdID must be provided.
+
+        | Tag  | Name     | Example Value | Description                                   |
+        |------|----------|:--------------|:----------------------------------------------|
+        | 11   | ClOrdID  | order123      | Client Order ID of the original order         |
+        | 37   | OrderID  | orderxyz      | Order ID (system generated) of the original order |
+
+        ## Order Execution Report (8)
+        The order execution report message is sent by the Server to report the result of a request from the Client.
+
+        | Tag  | Name         | Example Value | Description                                                               |
+        |------|--------------|:--------------|:--------------------------------------------------------------------------|
+        | 11   | ClOrdID      | order123      | Client order ID                                                           |
+        | 37   | OrderID      | orderxyz      | Order ID (system generated)                                               |
+        | 150  | ExecType     | 0             | [Reference](#exectype)                                                    |
+        | 39   | OrdStatus    | 0             | [Reference](#ordstatus)                                                   |
+        | 55   | Symbol       | BTC-AUD       |                                                                           |
+        | 54   | Side         | 1             | [Reference](#side)                                                        |
+        | 40   | OrdType      | 2             | [Reference](#ordtype)                                                     |
+        | 38   | OrderQty     | 1.1           | Original order quantity. Only available for ExecType = I                   |
+        | 44   | Price        | 8000          | Only available for ExecType = I                                           |
+        | 32   | LastQty      | 0.2           | Last quantity traded. Only available for ExecType = F                      |
+        | 31   | LastPx       | 100           | Last price traded. Only available for ExecType = F                         |
+        | 17   | ExecID       | 98765         | Execution/Trade ID. Only available for ExecType = F                        |
+        | 151  | LeavesQty    | 10            | Open order quantity                                                        |
+        | 103  | OrdRejReason | 101           | [Reference](#ordrejreason) Only available for ExecType = 8                  |
+        | 58   | Text         | Invalid market id | Free format reject reason text. Only available for ExecType = 8         |
+
+
+        ## Order Cancel Reject (9)
+        The order cancel reject message can be sent by the Server to reject an order cancelation request from the Client. These messages can be sent if the order is already canceled, filled, or does not exist in the system.
+
+        | Tag  | Name              | Example Value | Description                                                           |
+        |------|-------------------|:--------------|:----------------------------------------------------------------------|
+        | 37   | OrderID           | 123456        | Order ID for the original order (system generated)                    |
+        | 41   | OrigClOrdID       | order123      | Original client order ID                                              |
+        | 39   | OrdStatus         | 8             | Fixed value                                                           |
+        | 102  | CxlRejReason      | 0             | [Reference](#cxlrejreason)                                            |
+        | 434  | CxlRejResponseTo  | 1             | Response to the cancel request; Fixed value                           |
+
+        ## Order Mass Cancel Report (r)
+        The order mass cancel report is sent by the Server in response to an Order Mass Cancel request. There can be situations where a previous order is not cancelled due to the asynchronous nature of the trading system. We strongly advise keeping track of individual order updates to confirm the cancellations.  
+
+        | Tag  | Name                     | Example Value | Description                                                                 |
+        |------|--------------------------|:--------------|:----------------------------------------------------------------------------|
+        | 11   | ClOrdID                  | 123456        | Client Order ID for the mass cancel request                                 |
+        | 530  | MassCancelRequestType    | 1             | [Reference](#masscancelrequesttype)                                         |
+        | 531  | Mass Cancel Response     | I             | [Reference](#masscancelresponse)                                            |
+        | 532  | MassCancelRejectReason   | 102           | [Reference](#masscancelrejectreason), only available if Mass Cancel Response = '0' |
+
+        ## Business Message Reject (j)
+        The business message reject is sent by the Server when the message fulfils session-level rules, but gets rejected at the application-level. Note that standard FIX session-level reject messages (message type = '3') will be sent when incoming message violates standard FIX session rules  
+
+        | Tag  | Name                  | Example Value | Description                                                                  |
+        |------|-----------------------|:--------------|:-----------------------------------------------------------------------------|
+        | 45   | RefSeqNum             | 102           | Message sequence num of rejected message                                     |
+        | 372  | RefMsgType            | D             | Message Type of rejected message                                             |
+        | 380  | BusinessRejectReason  | 99            | [Reference](#businessrejectreason)                                           |
+        | 58   | Text                  | Throttle limit exceeded (300 in 10000ms) | Indicates msgs per millisecond allowed before throttle kicks in |
+
+
+
+
+      
+
+        
+
+        
+
+        
+
+
+
+
+
+      
+
+
+        
+
+
+
+
+    
+
+
+
+
+
+        
+      
+
+
+        
+
+
+
+    
+
+
+    - name: fix_order_entry
+      x-displayName: FIX Order Entry (Preview)
+      description: |
+        ## Overview
+        FIX Order Entry is a new, low-latency order-entry interface in the BTC Markets FIX offering. It is built for clients that place and cancel orders over FIX and want the lowest possible round-trip time between sending a request and receiving its Execution Report.
+
+        FIX Order Entry uses the **same FIX 4.4 specification, messages and data dictionary** as the existing FIX order-entry interface documented under **FIX Messages**. It accepts the same requests and returns the same reports with identical field encodings, so if you already integrate with BTC Markets FIX for order entry there are no codec or message-parsing changes to make.
+
+        > FIX Order Entry is currently in preview. Please contact the BTC Markets support team to request access and to receive the order-entry endpoint.
+
+        ### Connectivity
+        FIX Order Entry runs on a dedicated endpoint, separate from the existing FIX gateway, Drop Copy and Market Data. The support team will provide the endpoint during onboarding.
+
+        ### Authentication
+        Authentication is identical to the existing order-entry interface: the same API key is used as the `SenderCompID`, and the Logon (`A`) message must carry the same signature described under **FIX API Overview**.
+
+        ### FIX Dictionary
+        The FIX 4.4 data dictionary for FIX Order Entry is published at [https://github.com/BTCMarkets/fix-v2-codecs](https://github.com/BTCMarkets/fix-v2-codecs).
+
+        ## How FIX Order Entry Differs From the Existing FIX Interface
+        The two interfaces are the same on the wire. The differences are latency and the scope of the reports a session receives.
+
+        ### Lower latency
+        FIX Order Entry is optimised for latency and delivers a lower overall round trip, from the client's request to the corresponding Execution Report, than the existing FIX interface.
+
+        ### Session-scoped reports
+        A FIX Order Entry session only receives Execution Reports and cancellation messages for orders placed and cancelled **on that same FIX session**. Activity from other channels is not reported. For example, orders placed or cancelled via the REST API, or via a different FIX session, and the trades resulting from them, are not delivered to the session.
+
+        To receive all of an account's order and trade activity regardless of where it originated, use [FIX Drop Copy](#tag/fix_drop_copy) alongside FIX Order Entry.
+
+        ## Messages
+        FIX Order Entry supports the full message set documented under **FIX Messages**: Logon (`A`), Heartbeat (`0`), Test Request (`1`), Logout (`5`), New Single Order (`D`), Cancel Order (`F`), Order Status (`H`) and Order Mass Cancel Request (`q`) from the client; and Order Execution Report (`8`), Order Cancel Reject (`9`), Order Mass Cancel Report (`r`) and Business Message Reject (`j`) from the server.
+
+        Refer to the **FIX Messages** section for the full field-level definitions of each message and the shared data dictionary. They apply unchanged to FIX Order Entry.
+
+    - name: fix_drop_copy
+      x-displayName: FIX Drop Copy (Preview)
+      description: |
+        ## Overview
+        FIX Drop Copy is a new, receive-only addition to the BTC Markets FIX offering. It streams a real-time copy of an account's order and trade activity over a FIX session, so you can monitor fills, cancellations and order state without placing any orders yourself.
+
+        Drop Copy uses the **same FIX 4.4 specification, message formats and data dictionary** as the FIX order-entry interfaces, documented under **FIX Messages**. Execution Reports (`8`), Order Cancel Rejects (`9`) and every field encoding are identical, so if you already integrate with BTC Markets FIX for order entry there are no codec or message-parsing changes to make.
+
+        > FIX Drop Copy is currently in preview. Please contact the BTC Markets support team to request access and to receive the drop-copy endpoint.
+
+        ### Connectivity
+        Drop Copy runs on a dedicated endpoint, separate from the order-entry gateways. The support team will provide the endpoint during onboarding.
+
+        ### Authentication
+        Authentication is identical to the order-entry interface: the same API key is used as the `SenderCompID`, and the Logon (`A`) message must carry the same signature described under **FIX API Overview**. The signed Logon is the only message a client needs to send.
+
+        ### FIX Dictionary
+        The FIX 4.4 data dictionary for FIX Drop Copy is published at [https://github.com/BTCMarkets/fix-v2-codecs](https://github.com/BTCMarkets/fix-v2-codecs).
+
+        ## How Drop Copy Works
+        Drop Copy is receive-only, and it reports all of an account's activity regardless of where it originated.
+
+        ### The client only sends a Logon
+        A Drop Copy session is receive-only. After a successful Logon, the client is not expected to send any application messages — only the standard session-level messages (Heartbeat `0`, Test Request `1`, Logout `5`) are exchanged to keep the session alive.
+
+        Order-entry application messages are not accepted on a Drop Copy session. Any attempt to enter or cancel orders — New Single Order (`D`), Cancel Order (`F`), Order Mass Cancel Request (`q`) or Order Status (`H`) — is rejected (for example, a New Single Order is answered with a rejected Execution Report). Use the FIX order-entry interface or the REST API to manage orders.
+
+        ### Scope of delivered messages
+        Drop Copy delivers **all account-level order, cancellation and trade activity, regardless of where it originated**. Orders and cancellations submitted via the REST API or any FIX session are all reported on the Drop Copy session. Trade Execution Reports are delivered even when the fill is against an order that has been resting in the orderbook since well before the Drop Copy session connected.
+
+        ## Messages
+        Drop Copy uses the same message definitions documented under **FIX Messages**. In practice a Drop Copy session only exchanges the following.
+
+        ### Messages From Client to Server
+        | Message Type | Identifier |
+        |--------------|:----------|
+        | Logon        | A         |
+        | Heartbeat    | 0         |
+        | Test Request| 1         |
+        | Logout       | 5         |
+
+        ### Messages From Server to Client
+        | Message Type            | Identifier |
+        |-------------------------|:----------|
+        | Logon                   | A         |
+        | Heartbeat               | 0         |
+        | Test Request           | 1         |
+        | Logout                  | 5         |
+        | Order Execution Report  | 8         |
+        | Order Cancel Reject     | 9         |
+        | Business Message Reject | j         |
+
+        Refer to the **FIX Messages** section for the full field-level definitions of each message and the shared data dictionary — they apply unchanged to Drop Copy.
+
+    - name: fix_market_data
+      x-displayName: FIX Market Data (Preview)
+      description: |
+        ## Overview
+        FIX Market Data is a new, subscription-based addition to the BTC Markets FIX offering. It streams real-time order book data for the markets you subscribe to over a FIX session, so you can maintain a live local copy of the book without polling the REST API. Like Drop Copy, it is receive-oriented: after Logon the only application message a client sends is the subscription request.
+
+        Market Data uses the **same FIX 4.4 specification, session layer and data dictionary** as the order-entry and Drop Copy interfaces. If you already integrate with BTC Markets FIX, the session, Logon and authentication are unchanged — only the market-data application messages described below are added.
+
+        > FIX Market Data is currently in preview. Please contact the BTC Markets support team to request access and to receive the market-data endpoint.
+
+        ### Connectivity
+        Market Data runs on a dedicated endpoint, separate from the order-entry and Drop Copy gateways. The support team will provide the endpoint during onboarding.
+
+        ### Authentication
+        Authentication is identical to the order-entry interface: the same API key is used as the `SenderCompID`, and the Logon (`A`) message must carry the same signature described under **FIX API Overview**.
+
+        ### FIX Dictionary
+        The machine-readable FIX 4.4 data dictionary covering these market-data messages is published at [https://github.com/BTCMarkets/fix-v2-codecs](https://github.com/BTCMarkets/fix-v2-codecs). The tables below describe the same messages field by field.
+
+        ## How Market Data Works
+        A market-data session follows a simple subscribe → snapshot → updates flow:
+
+        1. **Subscribe.** After Logon, the client sends a Market Data Request (`V`) naming one or more symbols with a `SubscriptionRequestType` of `1` (Snapshot + Updates). Each request carries a client-assigned `MDReqID` that is echoed back on every response for that subscription.
+        2. **Snapshot.** For each subscribed symbol the server sends one Market Data Snapshot / Full Refresh (`W`) — the complete current order book, both sides.
+        3. **Updates.** The server then streams Market Data Incremental Refresh (`X`) messages carrying only the price levels that changed since the snapshot. Apply these to the book delivered in step 2 to keep a live copy. Both the snapshot (`W`) and each update (`X`) carry a book sequence in `RptSeq` (`83`); apply only updates whose `RptSeq` is greater than the snapshot's to stitch the live book onto it (see [Book sequence](#book-sequence)).
+        4. **Unsubscribe.** To stop a stream, the client sends a Market Data Request (`V`) with `SubscriptionRequestType` `2` (Disable previous snapshot / Unsubscribe) for the same symbol(s). The server identifies the streams to terminate by the `Symbol`(s) in `NoRelatedSym`, not by `MDReqID`. A valid `MDReqID` is still required on the request, but it does not need to match the `MDReqID` used on the original subscribe.
+
+        If a request cannot be satisfied (unknown symbol, unsupported subscription type, and so on) the server replies with a Market Data Request Reject (`Y`).
+
+        ### Book sides
+        Book side is not client-selectable — every snapshot and update carries both bids (`MDEntryType` `0`) and offers (`MDEntryType` `1`). There is no per-side subscription.
+
+        ### Incremental updates and the update action
+        `MDUpdateAction` (`279`) is the authoritative instruction for how to apply each level — key your book update on it, not on the size:
+
+        - **`CHANGE` (`1`)** — upsert the level: insert it at that price if you have none, otherwise replace the size at that price. Every addition and size change is delivered as `CHANGE`. The feed does not distinguish a brand-new level from a changed one, so `NEW` (`0`), although defined by the FIX dictionary, is not emitted on this interface.
+        - **`DELETE` (`2`)** — remove the level at that price. On a `DELETE` the accompanying `MDEntrySize` is `0`, but treat `MDUpdateAction` — not the size — as the signal to remove the level.
+
+        ### Book checksum
+        Every Incremental Refresh (`X`) carries a `BookChecksum` (`7929`): a value computed over the resulting order book that a client can recompute against its own reconstructed book to confirm the two are in sync. Snapshots (`W`) are complete and carry no checksum. The exact checksum algorithm will be documented separately.
+
+        ### Book sequence
+        Every Snapshot (`W`) and Incremental Refresh (`X`) carries a book sequence in `RptSeq` (`83`) — a value that increases monotonically per order book as its state advances. Use it to align the two message types:
+
+        - The `RptSeq` on a Snapshot (`W`) is the sequence the book was captured at.
+        - The `RptSeq` on an Incremental Refresh (`X`) is the sequence of the book after that update is applied.
+        - Apply an `X` only when its `RptSeq` is greater than the last sequence you have applied for that book; discard any `X` whose `RptSeq` is less than or equal to the snapshot's (it is already reflected in the snapshot).
+
+        `RptSeq` is scoped to a single order book (see the [Incremental Refresh scope note](#market-data-incremental-refresh-x)); track it per symbol. The value increases monotonically but is **not** a contiguous, one-per-message counter — it advances by varying amounts. Use it only to order and align updates against the snapshot. It cannot be used to detect message loss by expecting consecutive values, unlike venues that increment `RptSeq` by one per message.
+
+        > `RptSeq` (`83`) is a 64-bit value. Although FIX conventionally types tag 83 as a 32-bit sequence number, this feed can emit values beyond the 32-bit range — parse it as a 64-bit integer.
+
+        > Trade prints (`MDEntryType` `2`) are reserved for a future market-data stream and are not delivered on this interface yet. Today only bid/offer book entries are streamed.
+
+        ## Messages
+        Market Data adds the following application messages to the shared FIX 4.4 message set.
+
+        ### Messages From Client to Server
+        | Message Type        | Identifier |
+        |---------------------|:----------|
+        | Logon               | A         |
+        | Heartbeat           | 0         |
+        | Test Request       | 1         |
+        | Logout              | 5         |
+        | Market Data Request | V         |
+
+        ### Messages From Server to Client
+        | Message Type                        | Identifier |
+        |-------------------------------------|:----------|
+        | Logon                               | A         |
+        | Heartbeat                           | 0         |
+        | Test Request                       | 1         |
+        | Logout                              | 5         |
+        | Market Data Snapshot / Full Refresh | W         |
+        | Market Data Incremental Refresh     | X         |
+        | Market Data Request Reject          | Y         |
+        | Business Message Reject             | j         |
+
+        ## Market Data Request (V)
+        Sent by the client to subscribe to (or unsubscribe from) the order book for one or more symbols.
+
+        | Tag | Name                     | Example Value | Required Y/N | Description                                          |
+        |-----|--------------------------|:--------------|:-------------|:-----------------------------------------------------|
+        | 262 | MDReqID                  | req-1         | Y            | Client-assigned request ID, echoed on all responses. On an unsubscribe (`SubscriptionRequestType` `2`) it is required but need not match the original subscribe — streams are identified by `Symbol` |
+        | 263 | SubscriptionRequestType  | 1             | Y            | [Reference](#subscriptionrequesttype)                |
+        | 146 | NoRelatedSym             | 1             | Y            | Number of symbols in the request                     |
+        | 55  | Symbol                   | BTC-AUD       | Y            | Repeated once per `NoRelatedSym` entry               |
+
+        ## Market Data Snapshot / Full Refresh (W)
+        Sent by the server, once per subscribed symbol, immediately after a subscription. Carries the complete current order book for the symbol. `NoMDEntries` (`268`) is a repeating group; the per-level fields below repeat once per level.
+
+        | Tag | Name        | Example Value | Description                                    |
+        |-----|-------------|:--------------|:-----------------------------------------------|
+        | 262 | MDReqID     | req-1         | Echoes the subscription's request ID           |
+        | 55  | Symbol      | BTC-AUD       |                                                |
+        | 83  | RptSeq      | 1789795809485000 | Book sequence this snapshot was captured at. [See above](#book-sequence) |
+        | 268 | NoMDEntries | 50            | Number of book levels that follow              |
+        | 269 | MDEntryType | 0             | Per level. [Reference](#mdentrytype)           |
+        | 270 | MDEntryPx   | 61179.8       | Per level. Price                               |
+        | 271 | MDEntrySize | 1.2           | Per level. Size at the price level             |
+        | 273 | MDEntryTime | 20:54:27.632  | Per level. Book timestamp (optional)           |
+
+        ## Market Data Incremental Refresh (X)
+        Sent by the server to deliver the levels that changed since the snapshot. Apply each entry to your local book using its `MDUpdateAction`. `NoMDEntries` (`268`) is a repeating group; the per-level fields below repeat once per changed level.
+
+        Each `X` message delivers updates for a single order book. All levels within it share the same `Symbol` (`55`), and the root `BookChecksum` (`7929`) is that symbol's book checksum after the update is applied. When subscribed to multiple symbols, you receive a separate `X` per symbol — scope your checksum verification to the book identified by the entries' `Symbol`.
+
+        | Tag  | Name           | Example Value | Description                                                  |
+        |------|----------------|:--------------|:-------------------------------------------------------------|
+        | 262  | MDReqID        | req-1         | Echoes the subscription's request ID                         |
+        | 7929 | BookChecksum   | 2855026665    | Checksum of the resulting book. [See above](#book-checksum)  |
+        | 83   | RptSeq         | 1789795809485000 | Book sequence after this update is applied. [See above](#book-sequence) |
+        | 268  | NoMDEntries    | 2             | Number of changed levels that follow                         |
+        | 279  | MDUpdateAction | 1             | Per level. [Reference](#mdupdateaction)                      |
+        | 269  | MDEntryType    | 0             | Per level. [Reference](#mdentrytype)                         |
+        | 55   | Symbol         | BTC-AUD       | Per level                                                    |
+        | 270  | MDEntryPx      | 61179.8       | Per level. Price                                             |
+        | 271  | MDEntrySize    | 1.2           | Per level. New size at the level; `0` accompanies a `DELETE` — see [MDUpdateAction](#mdupdateaction) |
+        | 273  | MDEntryTime    | 20:54:27.632  | Per level. Update timestamp (optional)                       |
+
+        ## Market Data Request Reject (Y)
+        Sent by the server when a Market Data Request cannot be satisfied.
+
+        | Tag | Name                   | Example Value  | Description                          |
+        |-----|------------------------|:---------------|:-------------------------------------|
+        | 262 | MDReqID                | req-1          | Echoes the rejected request's ID     |
+        | 281 | MDRequestRejectReason  | 0              | [Reference](#mdrequestrejectreason)  |
+        | 58  | Text                   | Unknown symbol | Free-format reject reason text       |
+
+        ## Data Dictionary
+
+        ### SubscriptionRequestType
+
+        Only `1` (subscribe) and `2` (unsubscribe) are supported. A one-off book snapshot is served by the REST orderbook endpoint rather than over FIX.
+
+        | Value | Description                                                                 |
+        |-------|:----------------------------------------------------------------------------|
+        | 0     | Snapshot only — not supported; rejected with `UNSUPPORTED_SUBSCRIPTION_REQUESTTYPE` |
+        | 1     | Snapshot + Updates (subscribe)                                              |
+        | 2     | Disable previous snapshot (unsubscribe)                                     |
+
+        ### MDEntryType
+
+        | Value | Description                     |
+        |-------|:--------------------------------|
+        | 0     | Bid                             |
+        | 1     | Offer                           |
+        | 2     | Trade (reserved for future use) |
+
+        ### MDUpdateAction
+
+        | Value | Description                                                       |
+        |-------|:------------------------------------------------------------------|
+        | 0     | New — defined by FIX; not emitted on this feed (additions arrive as Change) |
+        | 1     | Change (upsert)                                                   |
+        | 2     | Delete                                                            |
+
+        ### MDRequestRejectReason
+
+        | Value | Description                            |
+        |-------|:---------------------------------------|
+        | 0     | Unknown symbol                         |
+        | 3     | Auth error                             |
+        | 4     | Unsupported subscription request type  |
+        | 8     | Unsupported MD entry type              |
+        | A     | Input error                            |
+        | B     | System error                           |
+
+        Refer to the **FIX Messages** section for the shared session-level messages (Logon, Heartbeat, Test Request, Logout), Business Message Reject (`j`), and the common message header — they apply unchanged to Market Data.
+
+x-tagGroups:
+    - name: Order Matching
+      tags:
+          - order_status
+          - OrderTypes
+          - StopOrders
+          - ClientOrderId
+          - Timeinforce
+          - TargetAmount
+          - PostOnly
+          - SelfTrade
+          - market_status
+
+    - name: APIs
+      tags:
+          - Market Data APIs
+          - Order Placement APIs
+          - Batch Order APIs
+          - Trade APIs
+          - Fund Management APIs
+          - Account APIs
+          - Report APIs
+          - Misc APIs
+          - ErrorCodes
+
+    - name: WebSocket Feed
+      tags:
+        - WS_Overview
+        - WS_Public_Events
+        - WS_Private_Events
+
+    - name: FIX API
+      tags:
+        - fix_introduction
+        - fix_order_entry
+        - fix_drop_copy
+        - fix_market_data
+        - fix_messages
+        
+
+paths:
+    $ref: ./path/orders.yaml
+

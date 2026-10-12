@@ -1,23 +1,301 @@
 aid: btcmarkets
+
 name: BTC Markets
-description: 'BTC Markets is a company surfaced via the API Evangelist harvest backlog (source: market-gap)
-  and added to the network as a stub for full-pipeline profiling.'
+
+image: https://assets.btcmarkets.net/images/marketing/og-images/og-default.jpg
+
+description: BTC Markets is an Australian cryptocurrency exchange. Its public v3 REST API at api.btcmarkets.net covers market data (markets, tickers,
+  order books, trades, candles), trading (orders, batch orders, trades), funding (deposits, withdrawals, transfers, addresses) and account data
+  (balances, fees, transactions, reports), with a WebSocket feed at wss://socket.btcmarkets.net/v2 and a FIX API.
+
 url: https://raw.githubusercontent.com/api-evangelist/btcmarkets/refs/heads/main/apis.yml
+
 x-type: company
+
 x-source: harvest:market-gap
-x-tier: stub
+
+x-tier: enriched
+
 x-tier-reason: harvest
+
 specificationVersion: '0.20'
+
 created: '2026-10-13'
+
 modified: '2026-10-13'
+
 tags:
 - Company
-apis: []
+- Cryptocurrency
+- Exchange
+- Trading
+- Market Data
+- Australia
+
 maintainers:
 - FN: Kin Lane
   email: kin@apievangelist.com
 - FN: APIs.json
   email: info@apis.io
+
 common:
+- type: AgenticAccess
+  url: agentic-access/btcmarkets-agentic-access.yml
+- type: Spectral
+  url: rules/btcmarkets-rules.yml
+- type: JSONLD
+  url: json-ld/btcmarkets-context.jsonld
+- type: Vocabulary
+  url: vocabulary/btcmarkets-vocabulary.yml
+- type: DataModel
+  url: data-model/btcmarkets-data-model.yml
+- type: Compliance
+  url: https://trust.btcmarkets.net/
+- type: ErrorCatalog
+  url: errors/btcmarkets-problem-types.yml
+- type: Conformance
+  url: conformance/btcmarkets-conformance.yml
+- type: SecurityTxt
+  url: well-known/btcmarkets-v3-security.txt
+- type: SecurityTxt
+  url: well-known/btcmarkets-status-security.txt
+- type: SecurityTxt
+  url: well-known/btcmarkets-security.txt
+- type: SecurityTxt
+  url: well-known/btcmarkets-docs-security.txt
+- type: SecurityTxt
+  url: well-known/btcmarkets-app-security.txt
+- type: SecurityTxt
+  url: well-known/btcmarkets-api-security.txt
+- type: WellKnown
+  url: well-known/btcmarkets-well-known.yml
+- type: Hosts
+  url: hosts/btcmarkets-hosts.yml
+- type: Vendors
+  url: vendors/btcmarkets-vendors.yml
+- type: SDKs
+  url: packages/btcmarkets-packages.yml
+- type: Packages
+  url: packages/btcmarkets-packages.yml
+- type: TermsOfService
+  url: https://www.btcmarkets.net/terms-of-service
+- type: Security
+  url: https://www.btcmarkets.net/blog/security
+- type: PrivacyPolicy
+  url: https://www.btcmarkets.net/privacy-policy
+- type: Pricing
+  url: https://www.btcmarkets.net/prices
+- type: Login
+  url: https://app.btcmarkets.net/login
+- type: GitHubOrganization
+  url: https://github.com/BTCMarkets
+- type: TrustCenter
+  url: security/btcmarkets-trust-center.yml
+- type: VulnerabilityDisclosure
+  url: security/btcmarkets-vulnerability-disclosure.yml
+- type: DomainSecurity
+  url: security/btcmarkets-domain-security.yml
 - type: Website
   url: https://www.btcmarkets.net
+- type: Documentation
+  url: https://docs.btcmarkets.net/
+- type: Blog
+  url: https://www.btcmarkets.net/blog
+- type: StatusPage
+  url: https://status.btcmarkets.net/
+- type: Support
+  url: https://support.btcmarkets.net/
+
+apis:
+- aid: btcmarkets:btcmarkets-account-apis-api
+  name: BTC Markets Account APIs API
+  description: The Account APIs API from BTC Markets — 4 operation(s) for account apis.
+  humanURL: https://docs.btcmarkets.net/
+  baseURL: https://api.btcmarkets.net
+  tags:
+  - Account APIs
+  properties:
+  - type: OpenAPI
+    url: openapi/btcmarkets-account-apis-api-openapi.yml
+  - type: Documentation
+    url: https://docs.btcmarkets.net/
+  - type: JSONSchema
+    url: json-schema/btcmarkets-create-withdraw-request-schema.json
+  - type: JSONSchema
+    url: json-schema/btcmarkets-place-order-request-schema.json
+  - type: JSONSchema
+    url: json-schema/btcmarkets-order-schema.json
+  - type: JSONSchema
+    url: json-schema/btcmarkets-create-report-request-schema.json
+  - type: JSONSchema
+    url: json-schema/btcmarkets-replace-order-request-schema.json
+  - type: JSONSchema
+    url: json-schema/btcmarkets-cancel-order-response-schema.json
+- aid: btcmarkets:btcmarkets-batch-order-apis-api
+  name: BTC Markets Batch Order APIs API
+  description: The Batch Order APIs API from BTC Markets — 2 operation(s) for batch order apis.
+  humanURL: https://docs.btcmarkets.net/
+  baseURL: https://api.btcmarkets.net
+  tags:
+  - Batch Order APIs
+  properties:
+  - type: OpenAPI
+    url: openapi/btcmarkets-batch-order-apis-api-openapi.yml
+  - type: Documentation
+    url: https://docs.btcmarkets.net/
+  - type: JSONSchema
+    url: json-schema/btcmarkets-create-withdraw-request-schema.json
+  - type: JSONSchema
+    url: json-schema/btcmarkets-place-order-request-schema.json
+  - type: JSONSchema
+    url: json-schema/btcmarkets-order-schema.json
+  - type: JSONSchema
+    url: json-schema/btcmarkets-create-report-request-schema.json
+  - type: JSONSchema
+    url: json-schema/btcmarkets-replace-order-request-schema.json
+  - type: JSONSchema
+    url: json-schema/btcmarkets-cancel-order-response-schema.json
+- aid: btcmarkets:btcmarkets-fund-management-apis-api
+  name: BTC Markets Fund Management APIs API
+  description: The Fund Management APIs API from BTC Markets — 9 operation(s) for fund management apis.
+  humanURL: https://docs.btcmarkets.net/
+  baseURL: https://api.btcmarkets.net
+  tags:
+  - Fund Management APIs
+  properties:
+  - type: OpenAPI
+    url: openapi/btcmarkets-fund-management-apis-api-openapi.yml
+  - type: Documentation
+    url: https://docs.btcmarkets.net/
+  - type: JSONSchema
+    url: json-schema/btcmarkets-create-withdraw-request-schema.json
+  - type: JSONSchema
+    url: json-schema/btcmarkets-place-order-request-schema.json
+  - type: JSONSchema
+    url: json-schema/btcmarkets-order-schema.json
+  - type: JSONSchema
+    url: json-schema/btcmarkets-create-report-request-schema.json
+  - type: JSONSchema
+    url: json-schema/btcmarkets-replace-order-request-schema.json
+  - type: JSONSchema
+    url: json-schema/btcmarkets-cancel-order-response-schema.json
+- aid: btcmarkets:btcmarkets-market-data-apis-api
+  name: BTC Markets Market Data APIs API
+  description: The Market Data APIs API from BTC Markets — 7 operation(s) for market data apis.
+  humanURL: https://docs.btcmarkets.net/
+  baseURL: https://api.btcmarkets.net
+  tags:
+  - Market Data APIs
+  properties:
+  - type: OpenAPI
+    url: openapi/btcmarkets-market-data-apis-api-openapi.yml
+  - type: Documentation
+    url: https://docs.btcmarkets.net/
+  - type: JSONSchema
+    url: json-schema/btcmarkets-create-withdraw-request-schema.json
+  - type: JSONSchema
+    url: json-schema/btcmarkets-place-order-request-schema.json
+  - type: JSONSchema
+    url: json-schema/btcmarkets-order-schema.json
+  - type: JSONSchema
+    url: json-schema/btcmarkets-create-report-request-schema.json
+  - type: JSONSchema
+    url: json-schema/btcmarkets-replace-order-request-schema.json
+  - type: JSONSchema
+    url: json-schema/btcmarkets-cancel-order-response-schema.json
+- aid: btcmarkets:btcmarkets-misc-apis-api
+  name: BTC Markets Misc APIs API
+  description: The Misc APIs API from BTC Markets — 1 operation(s) for misc apis.
+  humanURL: https://docs.btcmarkets.net/
+  baseURL: https://api.btcmarkets.net
+  tags:
+  - Misc APIs
+  properties:
+  - type: OpenAPI
+    url: openapi/btcmarkets-misc-apis-api-openapi.yml
+  - type: Documentation
+    url: https://docs.btcmarkets.net/
+  - type: JSONSchema
+    url: json-schema/btcmarkets-create-withdraw-request-schema.json
+  - type: JSONSchema
+    url: json-schema/btcmarkets-place-order-request-schema.json
+  - type: JSONSchema
+    url: json-schema/btcmarkets-order-schema.json
+  - type: JSONSchema
+    url: json-schema/btcmarkets-create-report-request-schema.json
+  - type: JSONSchema
+    url: json-schema/btcmarkets-replace-order-request-schema.json
+  - type: JSONSchema
+    url: json-schema/btcmarkets-cancel-order-response-schema.json
+- aid: btcmarkets:btcmarkets-order-placement-apis-api
+  name: BTC Markets Order Placement APIs API
+  description: The Order Placement APIs API from BTC Markets — 2 operation(s) for order placement apis.
+  humanURL: https://docs.btcmarkets.net/
+  baseURL: https://api.btcmarkets.net
+  tags:
+  - Order Placement APIs
+  properties:
+  - type: OpenAPI
+    url: openapi/btcmarkets-order-placement-apis-api-openapi.yml
+  - type: Documentation
+    url: https://docs.btcmarkets.net/
+  - type: JSONSchema
+    url: json-schema/btcmarkets-create-withdraw-request-schema.json
+  - type: JSONSchema
+    url: json-schema/btcmarkets-place-order-request-schema.json
+  - type: JSONSchema
+    url: json-schema/btcmarkets-order-schema.json
+  - type: JSONSchema
+    url: json-schema/btcmarkets-create-report-request-schema.json
+  - type: JSONSchema
+    url: json-schema/btcmarkets-replace-order-request-schema.json
+  - type: JSONSchema
+    url: json-schema/btcmarkets-cancel-order-response-schema.json
+- aid: btcmarkets:btcmarkets-report-apis-api
+  name: BTC Markets Report APIs API
+  description: The Report APIs API from BTC Markets — 2 operation(s) for report apis.
+  humanURL: https://docs.btcmarkets.net/
+  baseURL: https://api.btcmarkets.net
+  tags:
+  - Report APIs
+  properties:
+  - type: OpenAPI
+    url: openapi/btcmarkets-report-apis-api-openapi.yml
+  - type: Documentation
+    url: https://docs.btcmarkets.net/
+  - type: JSONSchema
+    url: json-schema/btcmarkets-create-withdraw-request-schema.json
+  - type: JSONSchema
+    url: json-schema/btcmarkets-place-order-request-schema.json
+  - type: JSONSchema
+    url: json-schema/btcmarkets-order-schema.json
+  - type: JSONSchema
+    url: json-schema/btcmarkets-create-report-request-schema.json
+  - type: JSONSchema
+    url: json-schema/btcmarkets-replace-order-request-schema.json
+  - type: JSONSchema
+    url: json-schema/btcmarkets-cancel-order-response-schema.json
+- aid: btcmarkets:btcmarkets-trade-apis-api
+  name: BTC Markets Trade APIs API
+  description: The Trade APIs API from BTC Markets — 2 operation(s) for trade apis.
+  humanURL: https://docs.btcmarkets.net/
+  baseURL: https://api.btcmarkets.net
+  tags:
+  - Trade APIs
+  properties:
+  - type: OpenAPI
+    url: openapi/btcmarkets-trade-apis-api-openapi.yml
+  - type: Documentation
+    url: https://docs.btcmarkets.net/
+  - type: JSONSchema
+    url: json-schema/btcmarkets-create-withdraw-request-schema.json
+  - type: JSONSchema
+    url: json-schema/btcmarkets-place-order-request-schema.json
+  - type: JSONSchema
+    url: json-schema/btcmarkets-order-schema.json
+  - type: JSONSchema
+    url: json-schema/btcmarkets-create-report-request-schema.json
+  - type: JSONSchema
+    url: json-schema/btcmarkets-replace-order-request-schema.json
+  - type: JSONSchema
+    url: json-schema/btcmarkets-cancel-order-response-schema.json

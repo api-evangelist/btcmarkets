@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/api-evangelist/btcmarkets/main/json-schema/btcmarkets-replace-order-request-schema.json",
+  "title": "ReplaceOrderRequest",
+  "x-generated": "2026-10-13",
+  "x-method": "derived",
+  "x-generator": "derive-json-schema.py",
+  "x-source": "openapi/btcmarkets-openapi.yml#/components/schemas/ReplaceOrderRequest",
+  "type": "object",
+  "required": [
+    "price",
+    "amount"
+  ],
+  "properties": {
+    "price": {
+      "description": null,
+      "type": "string"
+    },
+    "amount": {
+      "description": null,
+      "type": "string"
+    },
+    "clientOrderId": {
+      "description": "optional. a unique order id speciifed by client app.",
+      "type": "string"
+    }
+  }
+}

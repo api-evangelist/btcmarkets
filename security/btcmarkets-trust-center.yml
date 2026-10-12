@@ -1,0 +1,12 @@
+generated: '2026-10-13'
+method: searched
+probe: true
+source: https://trust.btcmarkets.net/
+url: https://trust.btcmarkets.net/
+certifications:
+- ISO 27001
+evidence:
+- source: https://trust.btcmarkets.net/
+  keywords:
+  - iso 27001
+  - trust center

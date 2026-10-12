@@ -1,0 +1,648 @@
+openapi: 3.2.0
+info:
+  version: 3.0.0
+  title: BTC Markets Fund Management APIs API
+  contact:
+    name: API Support
+    email: support@btcmarkets.net
+    url: http://btcmarkets.net
+  x-logo:
+    url: /doc/images/small-logo.png
+    altText: BtcMarkets logo
+  description: '# Introduction
+
+    Welcome to BTC Markets API v3.'
+servers:
+- url: https://api.btcmarkets.net
+  description: Production
+tags:
+- name: Fund Management APIs
+paths:
+  /v3/withdrawals:
+    post:
+      tags:
+      - Fund Management APIs
+      summary: Request to Withdraw
+      description: 'This API is used to request to withdraw crypto assets or `AUD`.
+
+        ## Withdrawal/Deposit Status
+
+        - `Accepted`: The withdrawal request has been accepted for processing.
+
+        - `Pending Authorization`: The withdrawal request has been accepted and is being processed.
+
+        - `Complete`: The withdrawal/deposit request has been successfully processed.
+
+        - `Cancelled`: The withdrawal request has been canceled due to issues with the request.
+
+        - `Failed`: The withdrawal request has been failed due to a system error.
+
+
+        ## clientTransferId:
+
+        - This is an optional parameter that can be set by the client applications to track withdrawals. In addition to retrieving withdrawal records, e.g. `GET /v3/withdrawals/a4`, it can also be useful in the event of a network issue or a timeout to track any previous withdrawal requests. It is a string field between 1 to 64 with the following characters allowed: a-z, A-Z, 0-9, - allowing standard formats like UUID.
+
+
+        ## beneficiaryDetail (Travel Rule):
+
+        - To comply with AUSTRAC''s travel rule obligations, withdrawal requests can include a `beneficiaryDetail` object describing the recipient.
+
+        - The `type` attribute can be either `Individual` or `Business`:
+
+        - For `Individual`, supply `firstName` and `lastName`.
+
+        - For `Business`, supply `businessName`.
+
+        - This attribute is currently **optional**. From `2026-06-15 12:00 AEST` it will become **mandatory**, and requests without it will be rejected with the error code `InvalidTransferBeneficiaryDetail`.
+
+        - When supplied, `beneficiaryDetail` is stored against the withdrawal record and returned in responses for listing withdrawals (`GET /v3/withdrawals`) and transfers (`GET /v3/transfers`).'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+              - description: request to withdraw
+                title: New request
+              - $ref: '#/components/schemas/CreateWithdrawRequest'
+            examples:
+              crypto:
+                summary: crypto
+                value:
+                  assetName: XRP
+                  amount: '25'
+                  toAddress: abc
+                  clientTransferId: a3
+                  beneficiaryDetail:
+                    type: Individual
+                    firstName: John
+                    lastName: Smith
+              fiat:
+                summary: fiat
+                value:
+                  assetName: AUD
+                  amount: '10'
+                  accountName: John Smith
+                  accountNumber: '123456'
+                  bsbNumber: '123456'
+                  bankName: ABC Bank
+                  paymentDescription: Ref 100002
+                  clientTransferId: a3
+                  beneficiaryDetail:
+                    type: Business
+                    businessName: ABC Trading Inc
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/examples/WithdrawalResponse'
+              examples:
+                crypto:
+                  $ref: '#/components/examples/WithdrawCryptoExample'
+                fiat:
+                  $ref: '#/components/examples/WithdrawFiatExample'
+        '400':
+          content:
+            application/json:
+              examples:
+                missingParam:
+                  summary: amount exceeds
+                  value:
+                    code: AmountExceedAvailableFund
+                    message: The amount exceeds withdrawable fund.
+                missingBeneficiary:
+                  summary: missing beneficiary detail (mandatory from 2026-06-15 12:00 AEST)
+                  value:
+                    code: InvalidTransferBeneficiaryDetail
+                    message: beneficiaryDetail is required.
+      operationId: postV3Withdrawals
+      x-operation-id-source: derived
+    get:
+      tags:
+      - Fund Management APIs
+      summary: List Withdrawals
+      description: Returns a list of withdrawals. This API supports pagination.
+      parameters:
+      - name: before
+        in: query
+        required: false
+        description: This is part of the pagination parameters.
+        schema:
+          type: integer
+          format: int64
+        example: 78234976
+      - name: after
+        in: query
+        required: false
+        description: This is part of the pagination parameters.
+        schema:
+          type: integer
+          format: int64
+        example: 78234876
+      - name: limit
+        in: query
+        description: This is part of the pagination parameters.
+        required: false
+        schema:
+          type: integer
+          format: int32
+        example: 10
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                basic:
+                  $ref: '#/components/examples/TransferListExample'
+      operationId: getV3Withdrawals
+      x-operation-id-source: derived
+  /v3/withdrawals/{id}:
+    get:
+      tags:
+      - Fund Management APIs
+      summary: Get Withdrawal by ID
+      description: This API is used to request to get a withdrawal by ID.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                basic:
+                  $ref: '#/components/examples/WithdrawCryptoExample'
+        '404':
+          description: Not found
+      operationId: getV3WithdrawalsById
+      x-operation-id-source: derived
+  /v3/deposits:
+    get:
+      tags:
+      - Fund Management APIs
+      summary: List Deposits
+      description: Returns a list of deposits. This API supports pagination.
+      parameters:
+      - name: before
+        in: query
+        required: false
+        description: This is part of the pagination parameters.
+        schema:
+          type: integer
+          format: int64
+        example: 78234976
+      - name: after
+        in: query
+        required: false
+        description: This is part of the pagination parameters.
+        schema:
+          type: integer
+          format: int64
+        example: 78234876
+      - name: limit
+        in: query
+        description: This is part of the pagination parameters.
+        required: false
+        schema:
+          type: integer
+          format: int32
+        example: 10
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                basic:
+                  $ref: '#/components/examples/TransferListExample'
+      operationId: getV3Deposits
+      x-operation-id-source: derived
+  /v3/deposits/{id}:
+    get:
+      tags:
+      - Fund Management APIs
+      summary: Get Deposit by ID
+      description: This API returns a deposit by ID.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                basic:
+                  $ref: '#/components/examples/DepositCryptoExample'
+        '404':
+          description: Not found
+      operationId: getV3DepositsById
+      x-operation-id-source: derived
+  /v3/transfers:
+    get:
+      tags:
+      - Fund Management APIs
+      summary: List Deposits/Withdrawals
+      description: 'A transfer record refers either to a deposit or withdrawal. This API returns a list of transfers covering both deposits and withdrawals, and this API supports pagination.
+
+
+        `type` represents the kind of transfer, e.g. `Deposit` or `Withdraw`. Transfers of funds between a parent account and its sub accounts appear with these types:
+
+        * `Internal Transfer Out`: funds moved out of the account (reduces the balance)
+
+        * `Internal Transfer In`: funds moved into the account (increases the balance)'
+      parameters:
+      - name: before
+        in: query
+        required: false
+        description: This is part of the pagination parameters.
+        schema:
+          type: integer
+          format: int64
+        example: 78234976
+      - name: after
+        in: query
+        required: false
+        description: This is part of the pagination parameters.
+        schema:
+          type: integer
+          format: int64
+        example: 78234876
+      - name: limit
+        in: query
+        description: This is part of the pagination parameters.
+        required: false
+        schema:
+          type: integer
+          format: int32
+        example: 10
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                basic:
+                  $ref: '#/components/examples/TransferListExample'
+      operationId: getV3Transfers
+      x-operation-id-source: derived
+  /v3/transfers/{id}:
+    get:
+      tags:
+      - Fund Management APIs
+      summary: Get Deposits/Withdrawals by ID
+      description: This API returns either a deposit or withdrawal by ID. `paymentDescription` is an optional value
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                basic:
+                  $ref: '#/components/examples/DepositCryptoExample'
+        '404':
+          description: Not found
+      operationId: getV3TransfersById
+      x-operation-id-source: derived
+  /v3/addresses:
+    get:
+      tags:
+      - Fund Management APIs
+      summary: Get Deposit Address
+      description: Returns deposit address for the given asset.
+      parameters:
+      - name: assetName
+        in: query
+        required: true
+        description: asset name for the deposit address
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                basic:
+                  $ref: '#/components/examples/AddressGetExample'
+      operationId: getV3Addresses
+      x-operation-id-source: derived
+  /v3/withdrawal-fees:
+    get:
+      tags:
+      - Fund Management APIs
+      summary: Get Withdrawal Fees
+      description: Returns fees associated with withdrawals. This API is public and does not require authentication as the fees are system-wide and published on the website.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                basic:
+                  $ref: '#/components/examples/WithdrawFeesExample'
+      operationId: getV3WithdrawalFees
+      x-operation-id-source: derived
+  /v3/assets:
+    get:
+      tags:
+      - Fund Management APIs
+      summary: List Assets
+      description: 'Retrieves list of assets including configuration.
+
+
+        * `assetName`: name of the asset that is used for trading or investment, e.g AUD
+
+        * `assetFullName`: full name of the asset, e.g Australian Dollar
+
+        * `minDepositAmount`: minimum amount to deposit
+
+        * `maxDepositAmount`: maximum amount to deposit
+
+        * `depositFee`: deposit fee
+
+        * `depositDecimals`: number of decimal places allowed for deposits
+
+        * `minWithdrawalAmount`: minimum amount to withdraw
+
+        * `maxWithdrawalAmount`: maximum amount to withdraw
+
+        * `withdrawalFee`: withdrawal fee
+
+        * `withdrawalDecimals`: number of decimal places allowed for withdrawals
+
+        * `status`: current status of the asset; can be Online, Offline, Deposit Only, or Withdrawal Only
+
+
+        Asset Status Options:
+
+        - `Offline`: The asset is currently offline; no withdrawals or deposits can be made.
+
+        - `Deposit Only`: The asset is available but only allows deposits at this stage.
+
+        - `Withdrawal Only`: The asset is available but only allows withdrawals at this stage.
+
+        - `Online`: The asset is online and operational with no restrictions.'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                basic:
+                  $ref: '#/components/examples/AssetsExample'
+      operationId: getV3Assets
+      x-operation-id-source: derived
+components:
+  examples:
+    AssetsExample:
+      value:
+      - assetName: AUD
+        assetFullName: Australian Dollar
+        minDepositAmount: '1'
+        maxDepositAmount: '5000000'
+        depositDecimals: '2'
+        depositFee: '0'
+        minWithdrawalAmount: '1'
+        maxWithdrawalAmount: '5000000'
+        withdrawalDecimals: '2'
+        withdrawalFee: '0'
+        status: Online
+      summary: list of assets
+    TransferListExample:
+      value:
+      - id: '123989'
+        assetName: BTC
+        amount: '0.3'
+        type: Withdraw
+        creationTime: '2019-08-27T21:41:56.832000Z'
+        status: Pending Authorization
+        description: 'BTC withdraw from [me@test.io] to Address: 3QJsRCW3qSinyC amount: 0.3 fee: 0'
+        fee: '0'
+        lastUpdate: '2019-08-27T21:41:57.004000Z'
+        clientTransferId: a43
+        paymentDetail:
+          address: 3QJmihAf3sRCW3qSinyC
+        beneficiaryDetail:
+          type: Individual
+          firstName: John
+          lastName: Smith
+      - id: '1167870'
+        assetName: AUD
+        amount: '0.15710206'
+        type: Deposit
+        creationTime: '2019-08-16T23:23:39.452000Z'
+        status: Complete
+        description: EFT Deposit, $ 0.15710206
+        fee: '0'
+        lastUpdate: '2019-08-16T23:23:39.603000Z'
+      summary: crypto withdraw example
+    DepositCryptoExample:
+      value:
+        id: '17866'
+        assetName: BTC
+        amount: '0.15710206'
+        type: Deposit
+        creationTime: '2019-08-16T23:19:03.553000Z'
+        status: Complete
+        description: BITCOIN Deposit, B 0.15710206
+        fee: '0'
+        lastUpdate: '2019-08-16T23:19:03.619000Z'
+        paymentDetail:
+          txId: E1264A7D5742480B28494
+          paymentDescription: payment-desc-1
+      summary: crypto deposit example
+    WithdrawFiatExample:
+      value:
+        id: '1224081'
+        assetName: AUD
+        amount: '10'
+        type: Withdraw
+        creationTime: '2019-09-04T02:01:07.830000Z'
+        status: Pending Authorization
+        description: 'Withdraw from [me@test.com] to bank, John Smith(BSB: 123456, Account: 6543321)'
+        fee: '0'
+        lastUpdate: '2019-09-04T02:01:08.013000Z'
+        clientTransferId: a43
+        paymentDetail:
+          paymentDescription: Ref 100002
+        beneficiaryDetail:
+          type: Business
+          businessName: ABC Trading Inc
+      summary: fiat withdraw example
+    WithdrawCryptoExample:
+      value:
+        id: '4126657'
+        assetName: XRP
+        amount: '25'
+        type: Withdraw
+        creationTime: '2019-09-04T00:04:10.973000Z'
+        status: Pending Authorization
+        description: 'XRP withdraw from [me@test.com] to Address: abc amount: 25 fee: 0'
+        fee: '0'
+        lastUpdate: '2019-09-04T00:04:11.018000Z'
+        clientTransferId: a3
+        paymentDetail:
+          address: abc
+        beneficiaryDetail:
+          type: Individual
+          firstName: John
+          lastName: Smith
+      summary: crypto withdraw example
+    WithdrawalResponse:
+      type: object
+      required:
+      - id
+      - assetName
+      - amount
+      - type
+      - creationTime
+      - status
+      - description
+      - fee
+      - lastUpdate
+      properties:
+        id:
+          description: null
+          type: string
+        assetName:
+          description: null
+          type: string
+        amount:
+          description: null
+          type: string
+        type:
+          description: null
+          type: string
+        creationTime:
+          description: null
+          type: string
+        status:
+          description: null
+          type: string
+        description:
+          description: null
+          type: string
+        fee:
+          description: null
+          type: string
+        lastUpdate:
+          description: null
+          type: string
+        clientTransferId:
+          description: null
+          type: string
+        paymentDetail:
+          description: null
+          type: object
+          properties:
+            txId:
+              description: represents unique blockchain transaction id, used for crypto withdrawals
+              type: string
+            address:
+              description: destination address for blockchain payment, used for crypto withdrawals
+              type: string
+            paymentDescription:
+              description: can be used for both crypto and fiat withdrawals
+              type: string
+        beneficiaryDetail:
+          $ref: '#/schemas/BeneficiaryDetail'
+    WithdrawFeesExample:
+      value:
+      - assetName: AUD
+        fee: '0'
+      - assetName: BTC
+        fee: '0.0003'
+      - assetName: BCHABC
+        fee: '0.001'
+      summary: withdraw fees example
+    AddressGetExample:
+      value:
+        address: 1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2
+        assetName: BTC
+      summary: address example
+  schemas:
+    CreateWithdrawRequest:
+      type: object
+      required:
+      - assetName
+      - amount
+      properties:
+        assetName:
+          type: string
+          description: name of the asset to withdraw e.g. `AUD` or `BTC`
+        amount:
+          type: string
+          description: amount to withdraw
+        toAddress:
+          type: string
+          description: destination address for crypto withdrawal. mandatory for crypto assets. For `XRP` withdrawals, you can optionally add destination tag to the address with `?dt=12345` e.g. `1EJKj147QmEzywLnLpuxSr6SoPr1p62VBX?dt=123456`
+        accountName:
+          type: string
+          description: optional for AUD withdrawal. when not specified default bank information is used
+        accountNumber:
+          type: string
+          description: optional for AUD withdrawal. when not specified default bank information is used
+        bsbNumber:
+          type: string
+          description: optional for AUD withdrawal. when not specified default bank information is used
+        bankName:
+          type: string
+          description: optional for AUD withdrawal. when not specified default bank information is used
+        paymentDescription:
+          type: string
+          description: optional for AUD withdrawal. Maximum character length of 18 and only alphanumeric
+        clientTransferId:
+          type: string
+          description: optional for withdrawal requests.
+        beneficiaryDetail:
+          $ref: '#/schemas/BeneficiaryDetail'
+x-tagGroups:
+- name: Order Matching
+  tags:
+  - order_status
+  - OrderTypes
+  - StopOrders
+  - ClientOrderId
+  - Timeinforce
+  - TargetAmount
+  - PostOnly
+  - SelfTrade
+  - market_status
+- name: APIs
+  tags:
+  - Market Data APIs
+  - Order Placement APIs
+  - Batch Order APIs
+  - Trade APIs
+  - Fund Management APIs
+  - Account APIs
+  - Report APIs
+  - Misc APIs
+  - ErrorCodes
+- name: WebSocket Feed
+  tags:
+  - WS_Overview
+  - WS_Public_Events
+  - WS_Private_Events
+- name: FIX API
+  tags:
+  - fix_introduction
+  - fix_order_entry
+  - fix_drop_copy
+  - fix_market_data
+  - fix_messages
+x-provenance:
+  method: searched
+  source: https://docs.btcmarkets.net/doc/openapi/index.yaml
+  generated: '2026-10-13'
+  note: Bundled from the provider-published multi-file OpenAPI (index.yaml, path/orders.yaml, components/index.yaml, info/index.yaml); verbatim sources in openapi/source/. Only external file $refs were inlined.

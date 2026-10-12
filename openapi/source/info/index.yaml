@@ -1,0 +1,355 @@
+version: 3.0.0
+title: BTC Markets API
+#termsOfService: "http://btcmarkets.net/toc"
+contact:
+    name: API Support
+    email: support@btcmarkets.net
+    url: http://btcmarkets.net
+x-logo:
+    url: "/doc/images/small-logo.png"
+    altText: BtcMarkets logo
+
+description: |
+  # Introduction
+    Welcome to BTC Markets API v3.
+
+    ## Overview
+
+    API v3 focuses on improving the experience for market markers, traders, and institutions, while covering all functionality currently provided via API v1 and v2. 
+    
+    It also offers significant improvements compared to previous API generations, including:
+
+    
+
+    | Improvement       |  Description              |
+    |------------|:--------------------------------|
+    | Compatibility with common REST API guidelines     | Easier to develop apps using standard libraries in any programming language |
+    | Batch processing     |  Allows traders to combine multiple order placements and cancellations in a single HTTP request  |
+    | Support for ClientOrderId     |  Allows traders to use their internal order ID hence better tracking of orders |
+    | Simple and flexible APIs     | e.g. no need to make multiple API calls per market. A single call orders API returns open or historical orders.  |
+    | Using HTTP status code for error handling     |     |
+    | Easier pagination     |    |
+    | New features     |  e.g. reports API, full orderbook data, multiple market tickers etc.  |
+    | Standard data formats    |  e.g. amount as string, date/time as ISO 8601, etc. |
+    | Better documentation    |  |
+
+    # Document Change Log
+      
+      This section covers the most recent and important API updates: 
+  
+    * 2026-10-09 Added FIX dictionary for FIX Order Entry, Drop Copy and Market Data (preview)
+    * 2026-10-08 Added new transfer types to transfers API and transaction report: `Internal Transfer Out` and `Internal Transfer In`
+    * 2026-10-04 Added FIX Order Entry (preview)
+    * 2026-09-22 Added FIX Market Data (preview)
+    * 2026-09-07 Added FIX Drop Copy (preview)
+    * 2026-07-31 Documented rate limit response headers
+    * 2026-05-26 Added `beneficiaryDetail` to withdrawals API for AUSTRAC travel rule compliance
+    * 2025-05-28 Added new types to transaction API: `Buy Transfer` and `Sell Transfer`
+    * 2025-05-28 Added `amountWithSign` to transaction API
+    * 2024-05-27 Added account trading report 
+    * 2024-02-08 Increased FIX rate limit
+    * 2023-10-04 added response sample to withdrawal API
+    * 2023-06-07 added new values to FIX CxlRejReason
+    * 2023-05-05 added clientOrderId to WebSocket orderChange event
+    * 2022-09-23 Updated for valueInQuoteAsset to REST API 
+    * 2022-09-20 Updated candles with new timeWindows
+    * 2022-09-20 Added valueInQuoteAsset to REST API - List Trades API
+    * 2022-09-19 Added clientTransferId for Fund Management APIs - Withdrawals
+    * 2022-08-31 Update FIX throttle limits  
+    * 2022-08-30 Added business rejects for FIX  
+    * 2022-08-30 Added ExecID to FIX execution reports  
+    * 2022-08-24 Updates to logon message
+    * 2022-08-23 Fixed port in FIX API endpoint
+    * 2022-08-22 Updated documentation for FIX Mass Cancels and Logon messages
+    * 2022-08-22 Corrections for FIX messages
+    * 2022-08-17 Added FIX mass cancellation messages    
+    * 2022-07-25 Added FIX API section.  
+    * 2022-07-21 Added `valueInQuoteAsset` to WebSocket orderChange event.  
+    
+    # General Notes
+
+    ### API Endpoint
+
+    Base URL for all public and private APIs: https://api.btcmarkets.net
+
+    The path for all APIs starts with `/v3`. For instance, the `time` API would be accessed via `https://api.btcmarkets.net/v3/time`.
+
+      
+    ### Request/response Format
+
+    All requests and responses use `application/json` content type for all APIs.
+
+    ### Date/time Format
+
+    All APIs return date/time format in ISO 8601 with microsecond precision. Sample time returned: `2019-08-20T06:22:11.123456Z`.
+
+    ### Number Format
+    Unless specified, all amounts are formatted as `string`. For instance when placing a new order, pass `"1.45"` as the amount to buy 1.45 of `LTC`.
+
+    At this stage, we support up to eight digits of decimal points when processing orders, trades, and transfers.
+
+    Every market has a configuration for the number of decimal points used for pricing. For instance, for the `BAT-AUD` market you can specify up to four decimal points for `price` and for `amount` you can specify up to eight decimal points.
+    Please refer to the `/v3/markets` API for more information.
+
+    ### Sort Order
+    By default, all lists are sorted in descending order, meaning the most recent records appear first in the list.
+
+    ### Null Values
+    Data objects returned by the HTTP response will not include attributes with null values.
+    For instance, if you are not using clientOrderId for placing orders, then the data object returned by the HTTP response won't include it.
+
+    APIs defined in this document have sample response format. In some cases, there is also an option to view the list of all possible attributes (from the right panel).
+
+    ### Record IDs
+    Records generated by the exchange will have IDs generated and represented in `string` format.
+
+    At this stage, some of the record IDs generated by the exchange might have numbers only; however, we can't guarantee that they will continue to use numbers only as we continue to change our underlying systems.
+
+    Therefore, we recommend that all client apps use string format to represent record IDs in order to avoid bugs at a later stage.
+
+    ### Rate Limits
+    Each API is throttled individually. All APIs are rate limited, and we currently measure rates over 10 second intervals. 
+    
+    For public APIs (e.g. get orderbook, ticker, etc.), the rate limit is tied to the client IP address. For private APIs (e.g. place order, cancel order, etc), the rate limit is tied to the account that created the API key.
+    
+    The default rate limit (unless otherwise specified) for public and private APIs is up to `150 calls per 10 seconds`. 
+    
+    There are exceptions to this rule as per below:
+
+    | Name       |  API       | Limit              |
+    |------------|:-----------|:---------------------|
+    | Order placement API | /v3/orders POST     | 50 calls per 10 seconds |
+    | Replace order API | /v3/orders/{id} PUT     | 50 calls per 10 seconds |
+    | Batch order API | /v3/batchorders POST     | 10 calls per 10 seconds |
+    | Batch market orderbook/ticker APIs | /v3/markets/orderbooks GET     | 30 calls per 10 seconds |
+    | Withdraw request API | /v3/withdrawals POST     | 20 calls per 10 seconds |
+
+    
+    Note: A single batch order API can include up to 10 individual place or cancel order requests. Also, the batch market orderbook API allows you to retrieve orderbook for multiple markets in a single call.
+
+    #### Rate Limit Response Headers
+
+    Every rate limited API returns the following response headers. Header names are case insensitive.
+
+    | Header       |  Description              |
+    |------------|:--------------------------------|
+    | `x-ratelimit-limit` | Number of calls allowed within a single rate limit window. |
+    | `x-ratelimit-remaining` | Number of calls still available in the current window. |
+    | `x-ratelimit-reset` | Unix time in seconds at which the current window ends. |
+
+    Rate limits use a fixed 10 second window. The quota is not replenished gradually: `x-ratelimit-remaining` decreases as calls are made, and at the time reported by `x-ratelimit-reset` the current window ends and the full `x-ratelimit-limit` quota becomes available again.
+
+    Requests rejected with HTTP status `429 - Too Many Requests` also include these headers, so `x-ratelimit-reset` indicates when the request can be retried.
+
+
+
+    ### HTTP Status
+    All APIs return commonly used HTTP statuses (e.g. 400, 401, 403, etc.) for errors and HTTP status 200 for a successful response.
+
+
+  # API Client Libraries
+
+   ### Sample Code
+    If you are starting to develop your client app, then the following samples can be useful. These samples demonstrate authentication for various types of requests.
+
+    - Node.js:  https://github.com/BTCMarkets/api-v3-client-node
+    - .NET(C#): https://github.com/BTCMarkets/api-v3-client-dotnet
+    - Python: https://github.com/BTCMarkets/api-v3-client-python
+    - Java: https://github.com/BTCMarkets/api-v3-client-java
+    - Go: https://github.com/BTCMarkets/api-v3-client-go
+    - Swift: https://github.com/BTCMarkets/api-v3-client-swift
+
+
+
+   ### Help from the Community
+
+   If you have a technical question, someone else in the community might have already asked the same question and solved the problem.
+
+   Please check out past issues and feel free to raise new questions or issues here:
+
+   https://github.com/BTCMarkets/API/issues
+
+
+   ### Previous Versions of API
+
+   You can find information about previous versions of this API here:
+
+   https://github.com/BTCMarkets/API#api-v1v2
+
+
+  # Error Handling
+
+  By default, all successful requests result in HTTP `200` status and with the appropriate entity being returned.
+
+  If any issues occur in processing the request, then a response code and a body containing a JSON message with more information about the underlying problem will be returned.
+
+  For instance, placing an order with an invalid amount (e.g. too low) will result in a HTTP 400 error and a response body with the following information:
+
+  `{"code":"InvalidOrderAmount", "message":"invalid order amount"}`
+
+  We would encourage client app developers to use appropriate HTTP frameworks/libraries that allow them to capture the body of the response for the handling of errors.
+
+  ## HTTP Status Codes
+
+  The following HTTP status codes are supported. We make our best effort to send one of the following responses in any situation.
+
+
+  | HTTP response       |  Description                     |
+  |------------|:--------------------------------|
+  | 200 - OK       | The HTTP request was successful. |
+  | 400 - Bad Request     | The request failed due to a syntax error or is missing a required parameter.   |
+  | 401 - Unauthorized       | Invalid API key or message signature generation issue |
+  | 403 - Forbidden       | You do not have access to the requested resource. |
+  | 404 - Not Found       | The requested resource was not found.  |
+  | 429 - Too Many Requests       | You have exceeded throttle. |
+  | 500 - Internal Server Error  | We failed to process your request due to a server problem.  |
+  | 502 - Bad Gateway  | We are unable to process your request at this time due to technical issues.|
+  | 503 - Service Unavailable  | Exchange is down or under maintenance |
+
+  ## API Error Codes
+   While handling HTTP status codes covers the requirements for most cases and client apps, there are situations where having a machine-readable and specific error code would help to handle specific cases more appropriately.
+
+   For instance, when an account runs out of funds, calling a "placeOrder" API would result in an HTTP response code of 400 and an error message of "Insufficient funds". A client app may categorize all HTTP 400s as an indication of an issue and halt running or log the issue for a person to investigate and fix. However, some apps may have application logic specifically to deal with the issue of running out of funds. In this case, the app would parse the response text "Insufficient funds" and determine that it needs to make a deposit.
+
+   Using the text message to make that decision might be difficult given that the text requires parsing. Additionally, if the text message is updated in the future (e.g. updated to "Insufficient funds in your ETH wallet") it may break the client application logic.
+
+   As a result, an additional error code is provided (along with the `message`) inside the body of the HTTP response that can be used to handle specific situations programmatically.
+
+   Below is a sample of such error codes:
+
+   `{"code":"IncorrectDecimalPoints","message":"incorrect number of decimal points for price"}`
+
+   Please refer to this section for a full list of errors: [**Full list of error codes**](#tag/ErrorCodes)
+
+   We ensure that those error codes remain the same for the lifetime of the API. However, the text message that comes with errors may change.
+
+   Also, some of the generic codes (e.g. BadRequest) may be changed to be specific codes (e.g. InvalidAmount) in the future. This change will not occur in the opposite direction (i.e specific to generic code).
+
+
+   # Authentication
+
+    ## Generate API key
+    Before you begin, please make sure to generate API keys on the website. API keys come with permission for each area (e.g. trading, account, and fundtransfer).
+
+    ## Authentication Parameters
+    In order to authenticate your request, the following parameters are required:
+    * API key
+    * API private key
+    * HTTP method: `POST`,  `GET` or `DELETE`
+    * Current timestamp in millisecond (you check server time by calling API `/v3/time` )
+    * Path of the request (with no query string)
+
+    ## Authentication Process
+    Use the following steps:
+    * Build a string message: `method + path + timestamp + data`.
+    * Sign the message using `Hmac512` algorithm.
+    * Add the following HTTP headers: `BM-AUTH-APIKEY`, `BM-AUTH-TIMESTAMP`, and `BM-AUTH-SIGNATURE`.
+
+
+    ## Build Message Signature
+    The message to sign is a string concatenation of the HTTP method, API path, timestamp, and post data.
+
+    The following code sample builds the message for authenticating for `/v3/reports` API using HTTP `POST`.
+
+    ```Javascript
+      var timestamp = Date.now();
+      var path = '/v3/reports';
+      var data = JSON.stringify({type:"TransactionReport",format:"json"});
+      var message =  "POST" + path + timestamp + data;
+    ```
+
+    * Replace `POST` with `GET` or `DELETE` for `GET/DELETE` APIs.
+    * For `GET` and `DELETE` requests the data portion of the message has no value; hence, it is not added to the message for signing.
+
+
+    ## Sign the Message
+    The following code sample signs the message for authentication.
+
+    ```Javascript
+      var buffer = Buffer.from(apiPrivateKey, 'base64');
+      var hmac = crypto.createHmac('sha512', buffer);
+      var signature = hmac.update(message).digest('base64');
+    ```
+
+    ## Set HTTP Headers
+    The following code sample sets HTTP headers for authentication.
+
+    ```Javascript
+      var headers = {
+        "Accept": "application/json",
+        'Content-Length': Buffer.byteLength(data),
+        "Content-Type": "application/json",
+        "BM-AUTH-APIKEY": apiKey,
+        "BM-AUTH-TIMESTAMP": timestamp,
+        "BM-AUTH-SIGNATURE": signature
+      };
+    ```
+
+    ## Sending HTTP Request
+    The following code sample sends HTTP request.
+
+    ```Javascript
+    var post_options = {
+    		host: baseUrl,
+    		path: path,
+    		method: 'POST',
+    		headers: headers
+    };
+    var post_req = https.request(post_options, function(res) {
+    	res.on('data', function (chunk) {
+    		console.log('Http Response Code: ' + res.statusCode);
+    		console.log('Response: ' + chunk);
+    	});
+    });
+    post_req.write(data);
+    post_req.end();
+    ```
+
+   # Pagination
+    API v3 uses cursor-based pagination. This allows users to retrieve a specified number of records before or after a given number.
+
+   ## Pagination Parameters
+
+   APIs with support for pagination will return two additional HTTP headers for each request.
+   * `BM-BEFORE`
+   * `BM-AFTER`
+
+   Then for those APIs, the following query parameters can be passed to handle pagination.
+
+    | Name       |  Mandatory |  Description                     | 
+    |------------|:----------:|:---------------------------------|
+    | limit      |  no        |  Specifies how many items to return any number between 1 and 200  | 
+    | before     |  no        |  Return items before given cursor  | 
+    | after      |  no        |  Return items after given cursor  | 
+
+
+   ## Pagination Process
+   Use the following steps:
+   1. Call the API with no query string params (you can specify the `limit`).
+   2. Parse the HTTP response and extract the `BM_BEFORE` and `BM-AFTER` HTTP headers.
+   3. If you need to retrieve older records, then pass `before=1234567` as query string with `1234567` being the value of HTTP header `BM-BEFORE`.
+   4. If you need to retrieve newer records, then pass `after=123589` as query string with `123589` being the value of HTTP header `BM-AFTER`.
+   5. Repeat from step 2.
+
+
+    # Batch Processing
+
+    Batch processing is supported for order placement, cancellation, and retrieval APIs. This gives more flexibility to traders and market makers for implementing different trading strategies.
+
+    Batch requests are not considered atomic actions so each individual item inside the request is handled separately to ensure that an individual response is present for each request.
+
+    One use case for batch processing is canceling an existing order and placing a new order with different attributes in a single HTTP call.
+
+    Error handling for batch requests is similar to standard REST APIs with the exception that some of the error messages are no longer returned as HTTP status.
+
+    For instance, when placing a new order, the following two error messages might be returned as a result of an invalid request:
+
+    | Request       |  HTTP Status                 |
+    |------------|:------------------------|
+    | using price:"12.32abc"      |  HTTP 400 - invalid due to invalid price  |
+    | placing order with insufficient fund     |  HTTP 400 - insufficient fund   |
+
+    However, if you are placing a batch request of multiple order placements, when the content of the batch is validated, each individual request returns an error message inside the response body; hence the above errors do not result in HTTP 400. Instead, you should parse the response body to determine which requests were successful.
+
+    Please refer to the [**Batch Order Placement**](#tag/Batch-Order-APIs) section for more information about how to handle the response body and errors for batch requests.
+
