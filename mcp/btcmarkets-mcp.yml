@@ -2,7 +2,14 @@ generated: '2026-10-13'
 method: derived
 generator: derive-mcp-candidate.py
 source:
-- openapi/btcmarkets-openapi.yml
+- openapi/btcmarkets-account-apis-api-openapi.yml
+- openapi/btcmarkets-batch-order-apis-api-openapi.yml
+- openapi/btcmarkets-fund-management-apis-api-openapi.yml
+- openapi/btcmarkets-market-data-apis-api-openapi.yml
+- openapi/btcmarkets-misc-apis-api-openapi.yml
+- openapi/btcmarkets-order-placement-apis-api-openapi.yml
+- openapi/btcmarkets-report-apis-api-openapi.yml
+- openapi/btcmarkets-trade-apis-api-openapi.yml
 status: candidate
 deployment:
   mode: none
@@ -10,166 +17,181 @@ deployment:
   verified: probed
 note: 'No MCP server was found. The pre-flight posted tools/list to /mcp on api.btcmarkets.net, www.btcmarkets.net, app.btcmarkets.net, docs.btcmarkets.net;
   verdict opaque (https://status.btcmarkets.net/mcp answered 403: the edge authenticates before it routes, which proves nothing either way). Candidate
-  tools below are derived from the 32 operation(s) in the provider''s own OpenAPI (32 listed); they describe what a server WOULD expose, not one
+  tools below are derived from the 35 operation(s) in the provider''s own OpenAPI (35 listed); they describe what a server WOULD expose, not one
   that exists.'
 tools:
-- name: create_v3_orders
-  operationId: POST /v3/orders
-  method: POST
-  path: /v3/orders
-  description: Place new Order
-- name: list_orders
-  operationId: listOrders
+- name: get_v3_accounts_me_trading_fees
+  operationId: getV3AccountsMeTradingFees
   method: GET
-  path: /v3/orders
-  description: List Orders
-- name: cancel_orders
-  operationId: cancelOrders
-  method: DELETE
-  path: /v3/orders
-  description: Cancel Open Orders
-- name: get_order_by_id
-  operationId: getOrderById
-  method: GET
-  path: /v3/orders/{id}
-  description: Get an Order
-- name: cancel_order
-  operationId: cancelOrder
-  method: DELETE
-  path: /v3/orders/{id}
-  description: Cancel an Order
-- name: replace_order_by_id
-  operationId: replaceOrderById
-  method: PUT
-  path: /v3/orders/{id}
-  description: Replace an Order
-- name: create_v3_batchorders
-  operationId: POST /v3/batchorders
+  path: /v3/accounts/me/trading-fees
+  description: Get Trading Fees
+- name: post_v3_batchorders
+  operationId: postV3Batchorders
   method: POST
   path: /v3/batchorders
   description: Place and Cancel Orders
-- name: get_order_by_ids
-  operationId: getOrderByIds
+- name: post_v3_withdrawals
+  operationId: postV3Withdrawals
+  method: POST
+  path: /v3/withdrawals
+  description: Request to Withdraw
+- name: get_v3_markets
+  operationId: getV3Markets
   method: GET
-  path: /v3/batchorders/{ids}
-  description: Get Orders by ID
-- name: delete_v3_batchorders
-  operationId: DELETE /v3/batchorders/{ids}
-  method: DELETE
-  path: /v3/batchorders/{ids}
-  description: Cancel Orders by ID
+  path: /v3/markets
+  description: List Active Markets
+- name: get_v3_time
+  operationId: getV3Time
+  method: GET
+  path: /v3/time
+  description: Get Server Time
+- name: post_v3_orders
+  operationId: postV3Orders
+  method: POST
+  path: /v3/orders
+  description: Place new Order
+- name: post_v3_reports
+  operationId: postV3Reports
+  method: POST
+  path: /v3/reports
+  description: Create new Report
 - name: get_trades
   operationId: getTrades
   method: GET
   path: /v3/trades
   description: List Trades
+- name: get_v3_accounts_me_withdrawal_limits
+  operationId: getV3AccountsMeWithdrawalLimits
+  method: GET
+  path: /v3/accounts/me/withdrawal-limits
+  description: Get Withdrawal Limits
+- name: get_order_by_ids
+  operationId: getOrderByIds
+  method: GET
+  path: /v3/batchorders/{ids}
+  description: Get Orders by ID
+- name: get_v3_withdrawals
+  operationId: getV3Withdrawals
+  method: GET
+  path: /v3/withdrawals
+  description: List Withdrawals
+- name: get_v3_markets_by_market_id_ticker
+  operationId: getV3MarketsByMarketIdTicker
+  method: GET
+  path: /v3/markets/{marketId}/ticker
+  description: Get Market Ticker
+- name: list_orders
+  operationId: listOrders
+  method: GET
+  path: /v3/orders
+  description: List Orders
+- name: get_v3_reports_by_id
+  operationId: getV3ReportsById
+  method: GET
+  path: /v3/reports/{id}
+  description: Get Report by ID
 - name: get_trade_by_id
   operationId: getTradeById
   method: GET
   path: /v3/trades/{id}
   description: Get Trade by ID
-- name: get_v3_markets
-  operationId: GET /v3/markets
+- name: get_v3_accounts_me_balances
+  operationId: getV3AccountsMeBalances
   method: GET
-  path: /v3/markets
-  description: List Active Markets
-- name: get_markets_ticker
-  operationId: GET /v3/markets/{marketId}/ticker
+  path: /v3/accounts/me/balances
+  description: Get Balances
+- name: delete_v3_batchorders_by_ids
+  operationId: deleteV3BatchordersByIds
+  method: DELETE
+  path: /v3/batchorders/{ids}
+  description: Cancel Orders by ID
+- name: get_v3_withdrawals_by_id
+  operationId: getV3WithdrawalsById
   method: GET
-  path: /v3/markets/{marketId}/ticker
-  description: Get Market Ticker
-- name: get_markets_trades
-  operationId: GET /v3/markets/{marketId}/trades
+  path: /v3/withdrawals/{id}
+  description: Get Withdrawal by ID
+- name: get_v3_markets_by_market_id_trades
+  operationId: getV3MarketsByMarketIdTrades
   method: GET
   path: /v3/markets/{marketId}/trades
   description: Get Market Trades
-- name: get_markets_orderbook
-  operationId: GET /v3/markets/{marketId}/orderbook
+- name: cancel_orders
+  operationId: cancelOrders
+  method: DELETE
+  path: /v3/orders
+  description: Cancel Open Orders
+- name: get_v3_accounts_me_transactions
+  operationId: getV3AccountsMeTransactions
   method: GET
-  path: /v3/markets/{marketId}/orderbook
-  description: Get Market Orderbook
-- name: get_markets_candles
-  operationId: GET /v3/markets/{marketId}/candles
-  method: GET
-  path: /v3/markets/{marketId}/candles
-  description: Get Market Candles
-- name: get_markets_tickers
-  operationId: GET /v3/markets/tickers
-  method: GET
-  path: /v3/markets/tickers
-  description: Get Multiple Tickers
-- name: get_markets_orderbooks
-  operationId: GET /v3/markets/orderbooks
-  method: GET
-  path: /v3/markets/orderbooks
-  description: Get Multiple Orderbooks
-- name: create_v3_withdrawals
-  operationId: POST /v3/withdrawals
-  method: POST
-  path: /v3/withdrawals
-  description: Request to Withdraw
-- name: get_v3_withdrawals
-  operationId: GET /v3/withdrawals
-  method: GET
-  path: /v3/withdrawals
-  description: List Withdrawals
+  path: /v3/accounts/me/transactions
+  description: Get Transactions
 - name: get_v3_deposits
-  operationId: GET /v3/deposits
+  operationId: getV3Deposits
   method: GET
   path: /v3/deposits
   description: List Deposits
+- name: get_v3_markets_by_market_id_orderbook
+  operationId: getV3MarketsByMarketIdOrderbook
+  method: GET
+  path: /v3/markets/{marketId}/orderbook
+  description: Get Market Orderbook
+- name: get_order_by_id
+  operationId: getOrderById
+  method: GET
+  path: /v3/orders/{id}
+  description: Get an Order
+- name: get_v3_deposits_by_id
+  operationId: getV3DepositsById
+  method: GET
+  path: /v3/deposits/{id}
+  description: Get Deposit by ID
+- name: get_v3_markets_by_market_id_candles
+  operationId: getV3MarketsByMarketIdCandles
+  method: GET
+  path: /v3/markets/{marketId}/candles
+  description: Get Market Candles
+- name: cancel_order
+  operationId: cancelOrder
+  method: DELETE
+  path: /v3/orders/{id}
+  description: Cancel an Order
 - name: get_v3_transfers
-  operationId: GET /v3/transfers
+  operationId: getV3Transfers
   method: GET
   path: /v3/transfers
   description: List Deposits/Withdrawals
+- name: get_v3_markets_tickers
+  operationId: getV3MarketsTickers
+  method: GET
+  path: /v3/markets/tickers
+  description: Get Multiple Tickers
+- name: replace_order_by_id
+  operationId: replaceOrderById
+  method: PUT
+  path: /v3/orders/{id}
+  description: Replace an Order
+- name: get_v3_transfers_by_id
+  operationId: getV3TransfersById
+  method: GET
+  path: /v3/transfers/{id}
+  description: Get Deposits/Withdrawals by ID
+- name: get_v3_markets_orderbooks
+  operationId: getV3MarketsOrderbooks
+  method: GET
+  path: /v3/markets/orderbooks
+  description: Get Multiple Orderbooks
 - name: get_v3_addresses
-  operationId: GET /v3/addresses
+  operationId: getV3Addresses
   method: GET
   path: /v3/addresses
   description: Get Deposit Address
-- name: get_v3_withdrawal-fees
-  operationId: GET /v3/withdrawal-fees
+- name: get_v3_withdrawal_fees
+  operationId: getV3WithdrawalFees
   method: GET
   path: /v3/withdrawal-fees
   description: Get Withdrawal Fees
 - name: get_v3_assets
-  operationId: GET /v3/assets
+  operationId: getV3Assets
   method: GET
   path: /v3/assets
   description: List Assets
-- name: create_v3_reports
-  operationId: POST /v3/reports
-  method: POST
-  path: /v3/reports
-  description: Create new Report
-- name: get_v3_reports
-  operationId: GET /v3/reports/{id}
-  method: GET
-  path: /v3/reports/{id}
-  description: Get Report by ID
-- name: get_me_trading-fees
-  operationId: GET /v3/accounts/me/trading-fees
-  method: GET
-  path: /v3/accounts/me/trading-fees
-  description: Get Trading Fees
-- name: get_me_withdrawal-limits
-  operationId: GET /v3/accounts/me/withdrawal-limits
-  method: GET
-  path: /v3/accounts/me/withdrawal-limits
-  description: Get Withdrawal Limits
-- name: get_me_balances
-  operationId: GET /v3/accounts/me/balances
-  method: GET
-  path: /v3/accounts/me/balances
-  description: Get Balances
-- name: get_me_transactions
-  operationId: GET /v3/accounts/me/transactions
-  method: GET
-  path: /v3/accounts/me/transactions
-  description: Get Transactions
-- name: get_v3_time
-  operationId: GET /v3/time
-  method: GET
-  path: /v3/time
-  description: Get Server Time

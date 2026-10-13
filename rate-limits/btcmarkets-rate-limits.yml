@@ -1,0 +1,63 @@
+# Rate limits transcribed from the provider's own documentation. Quoted, not derived.
+generated: '2026-10-13'
+method: searched
+source: https://docs.btcmarkets.net/#rate-limits
+name: BTC Markets API Rate Limits
+sources:
+- https://docs.btcmarkets.net/
+published: true
+note: >-
+  "Each API is throttled individually. All APIs are rate limited, and we currently measure rates over
+  10 second intervals." Public APIs are limited per client IP; private APIs per the account that created
+  the API key. Fixed 10-second window, not replenished gradually; 429 responses carry the same headers.
+headers:
+- x-ratelimit-limit
+- x-ratelimit-remaining
+- x-ratelimit-reset
+limit_count: 8
+limits:
+- name: Default (public and private REST APIs)
+  limit_text: The default rate limit (unless otherwise specified) for public and private APIs is up to 150 calls per 10 seconds.
+  limit: 150
+  window: 10 seconds
+  scope: ip (public) / account (private)
+- name: Order placement API
+  limit_text: Order placement API /v3/orders POST 50 calls per 10 seconds
+  limit: 50
+  window: 10 seconds
+  scope: endpoint
+  endpoint: POST /v3/orders
+- name: Replace order API
+  limit_text: Replace order API /v3/orders/{id} PUT 50 calls per 10 seconds
+  limit: 50
+  window: 10 seconds
+  scope: endpoint
+  endpoint: PUT /v3/orders/{id}
+- name: Batch order API
+  limit_text: Batch order API /v3/batchorders POST 10 calls per 10 seconds
+  limit: 10
+  window: 10 seconds
+  scope: endpoint
+  endpoint: POST /v3/batchorders
+- name: Batch market orderbook/ticker APIs
+  limit_text: Batch market orderbook/ticker APIs /v3/markets/orderbooks GET 30 calls per 10 seconds
+  limit: 30
+  window: 10 seconds
+  scope: endpoint
+  endpoint: GET /v3/markets/orderbooks
+- name: Withdraw request API
+  limit_text: Withdraw request API /v3/withdrawals POST 20 calls per 10 seconds
+  limit: 20
+  window: 10 seconds
+  scope: endpoint
+  endpoint: POST /v3/withdrawals
+- name: WebSocket new connections
+  limit_text: New connections to the WebSocket feed are rate limited to 3 attempts per 10 seconds per IP.
+  limit: 3
+  window: 10 seconds
+  scope: ip
+- name: FIX session
+  limit_text: All requests are limited to 600 calls per 10 seconds per FIX session.
+  limit: 600
+  window: 10 seconds
+  scope: session

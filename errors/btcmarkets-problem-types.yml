@@ -2,7 +2,14 @@ generated: '2026-10-13'
 method: derived
 generator: derive-problem-types.py
 source:
-- openapi/btcmarkets-openapi.yml
+- openapi/btcmarkets-account-apis-api-openapi.yml
+- openapi/btcmarkets-batch-order-apis-api-openapi.yml
+- openapi/btcmarkets-fund-management-apis-api-openapi.yml
+- openapi/btcmarkets-market-data-apis-api-openapi.yml
+- openapi/btcmarkets-misc-apis-api-openapi.yml
+- openapi/btcmarkets-order-placement-apis-api-openapi.yml
+- openapi/btcmarkets-report-apis-api-openapi.yml
+- openapi/btcmarkets-trade-apis-api-openapi.yml
 format: custom
 envelope:
   media_type: application/json

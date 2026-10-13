@@ -14,7 +14,7 @@ x-type: company
 
 x-source: harvest:market-gap
 
-x-tier: enriched
+x-tier: profiled
 
 x-tier-reason: harvest
 
@@ -39,6 +39,8 @@ maintainers:
   email: info@apis.io
 
 common:
+- type: RateLimits
+  url: rate-limits/btcmarkets-rate-limits.yml
 - type: AgenticAccess
   url: agentic-access/btcmarkets-agentic-access.yml
 - type: Spectral
@@ -299,3 +301,7 @@ apis:
     url: json-schema/btcmarkets-replace-order-request-schema.json
   - type: JSONSchema
     url: json-schema/btcmarkets-cancel-order-response-schema.json
+x-enrichment:
+  status: enriched
+  pass: local-v5
+  date: '2026-10-13'
