@@ -187,7 +187,84 @@ paths:
       operationId: deleteV3BatchordersByIds
       x-operation-id-source: derived
 components:
+  schemas:
+    BatchOrderRequests:
+      type: array
+      items:
+        $ref: '#/schemas/BatchOrderRequest'
+    Order:
+      type: object
+      properties:
+        orderId:
+          type: string
+        marketId:
+          type: string
+        side:
+          type: string
+        type:
+          type: string
+        creationTime:
+          type: string
+        price:
+          type: string
+        amount:
+          type: string
+        openAmount:
+          type: string
+        status:
+          type: string
+        triggerPrice:
+          type: string
+        targetAmount:
+          type: string
+        timeInForce:
+          type: string
+        postOnly:
+          type: boolean
+        selfTrade:
+          type: string
+        errorMessage:
+          type: string
+          description: Indicates why the order failed after it was accepted. This attribute is null in most situations except for rare cases where the order is accepted at the point of entry but then rejected by the matching engine (e.g., due to insufficient funds).
+        clientOrderId:
+          type: string
   examples:
+    BatchOrderProcessingWithErrorExample:
+      value:
+        placeOrders:
+        - orderId: '752132'
+          marketId: BTC-AUD
+          side: Ask
+          type: Limit
+          creationTime: '2019-09-01T17:38:17.404000Z'
+          price: '112'
+          amount: '1.03'
+          openAmount: '1.03'
+          status: Accepted
+          clientOrderId: '44'
+        cancelOrders:
+        - orderId: '752129'
+          clientOrderId: '43'
+        unprocessedRequests:
+        - code: InvalidOrderSide
+          message: invalid order side
+          requestId: '45'
+        - code: OrderNotFound
+          message: order was not found
+          requestId: '39'
+      summary: basic order attributes
+    BatchOrderCancelExample:
+      value:
+        cancelOrders:
+        - orderId: '414186'
+          clientOrderId: '6'
+        - orderId: '414192'
+          clientOrderId: '7'
+        unprocessedRequests:
+        - code: OrderAlreadyCancelled
+          message: order is already cancelled.
+          requestId: '1'
+      summary: basic order attributes
     BatchOrderRequestExample:
       value:
       - placeOrder:
@@ -208,18 +285,6 @@ components:
           clientOrderId: '45'
         cancelOrder:
           orderId: '3467439'
-      summary: basic order attributes
-    BatchOrderCancelExample:
-      value:
-        cancelOrders:
-        - orderId: '414186'
-          clientOrderId: '6'
-        - orderId: '414192'
-          clientOrderId: '7'
-        unprocessedRequests:
-        - code: OrderAlreadyCancelled
-          message: order is already cancelled.
-          requestId: '1'
       summary: basic order attributes
     BatchOrderGetExample:
       value:
@@ -260,71 +325,6 @@ components:
           message: order was not found
           requestId: '39'
       summary: all errors
-    BatchOrderProcessingWithErrorExample:
-      value:
-        placeOrders:
-        - orderId: '752132'
-          marketId: BTC-AUD
-          side: Ask
-          type: Limit
-          creationTime: '2019-09-01T17:38:17.404000Z'
-          price: '112'
-          amount: '1.03'
-          openAmount: '1.03'
-          status: Accepted
-          clientOrderId: '44'
-        cancelOrders:
-        - orderId: '752129'
-          clientOrderId: '43'
-        unprocessedRequests:
-        - code: InvalidOrderSide
-          message: invalid order side
-          requestId: '45'
-        - code: OrderNotFound
-          message: order was not found
-          requestId: '39'
-      summary: basic order attributes
-  schemas:
-    Order:
-      type: object
-      properties:
-        orderId:
-          type: string
-        marketId:
-          type: string
-        side:
-          type: string
-        type:
-          type: string
-        creationTime:
-          type: string
-        price:
-          type: string
-        amount:
-          type: string
-        openAmount:
-          type: string
-        status:
-          type: string
-        triggerPrice:
-          type: string
-        targetAmount:
-          type: string
-        timeInForce:
-          type: string
-        postOnly:
-          type: boolean
-        selfTrade:
-          type: string
-        errorMessage:
-          type: string
-          description: Indicates why the order failed after it was accepted. This attribute is null in most situations except for rare cases where the order is accepted at the point of entry but then rejected by the matching engine (e.g., due to insufficient funds).
-        clientOrderId:
-          type: string
-    BatchOrderRequests:
-      type: array
-      items:
-        $ref: '#/schemas/BatchOrderRequest'
 x-tagGroups:
 - name: Order Matching
   tags:

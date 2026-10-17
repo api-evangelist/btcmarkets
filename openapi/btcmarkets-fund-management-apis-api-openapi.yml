@@ -404,20 +404,6 @@ paths:
       x-operation-id-source: derived
 components:
   examples:
-    AssetsExample:
-      value:
-      - assetName: AUD
-        assetFullName: Australian Dollar
-        minDepositAmount: '1'
-        maxDepositAmount: '5000000'
-        depositDecimals: '2'
-        depositFee: '0'
-        minWithdrawalAmount: '1'
-        maxWithdrawalAmount: '5000000'
-        withdrawalDecimals: '2'
-        withdrawalFee: '0'
-        status: Online
-      summary: list of assets
     TransferListExample:
       value:
       - id: '123989'
@@ -446,21 +432,6 @@ components:
         fee: '0'
         lastUpdate: '2019-08-16T23:23:39.603000Z'
       summary: crypto withdraw example
-    DepositCryptoExample:
-      value:
-        id: '17866'
-        assetName: BTC
-        amount: '0.15710206'
-        type: Deposit
-        creationTime: '2019-08-16T23:19:03.553000Z'
-        status: Complete
-        description: BITCOIN Deposit, B 0.15710206
-        fee: '0'
-        lastUpdate: '2019-08-16T23:19:03.619000Z'
-        paymentDetail:
-          txId: E1264A7D5742480B28494
-          paymentDescription: payment-desc-1
-      summary: crypto deposit example
     WithdrawFiatExample:
       value:
         id: '1224081'
@@ -498,6 +469,34 @@ components:
           firstName: John
           lastName: Smith
       summary: crypto withdraw example
+    AssetsExample:
+      value:
+      - assetName: AUD
+        assetFullName: Australian Dollar
+        minDepositAmount: '1'
+        maxDepositAmount: '5000000'
+        depositDecimals: '2'
+        depositFee: '0'
+        minWithdrawalAmount: '1'
+        maxWithdrawalAmount: '5000000'
+        withdrawalDecimals: '2'
+        withdrawalFee: '0'
+        status: Online
+      summary: list of assets
+    AddressGetExample:
+      value:
+        address: 1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2
+        assetName: BTC
+      summary: address example
+    WithdrawFeesExample:
+      value:
+      - assetName: AUD
+        fee: '0'
+      - assetName: BTC
+        fee: '0.0003'
+      - assetName: BCHABC
+        fee: '0.001'
+      summary: withdraw fees example
     WithdrawalResponse:
       type: object
       required:
@@ -556,20 +555,21 @@ components:
               type: string
         beneficiaryDetail:
           $ref: '#/schemas/BeneficiaryDetail'
-    WithdrawFeesExample:
+    DepositCryptoExample:
       value:
-      - assetName: AUD
-        fee: '0'
-      - assetName: BTC
-        fee: '0.0003'
-      - assetName: BCHABC
-        fee: '0.001'
-      summary: withdraw fees example
-    AddressGetExample:
-      value:
-        address: 1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2
+        id: '17866'
         assetName: BTC
-      summary: address example
+        amount: '0.15710206'
+        type: Deposit
+        creationTime: '2019-08-16T23:19:03.553000Z'
+        status: Complete
+        description: BITCOIN Deposit, B 0.15710206
+        fee: '0'
+        lastUpdate: '2019-08-16T23:19:03.619000Z'
+        paymentDetail:
+          txId: E1264A7D5742480B28494
+          paymentDescription: payment-desc-1
+      summary: crypto deposit example
   schemas:
     CreateWithdrawRequest:
       type: object

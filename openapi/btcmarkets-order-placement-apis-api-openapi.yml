@@ -256,106 +256,7 @@ paths:
                     code: OrderStatusIsFinal
                     message: Order cancellation is not allowed
 components:
-  examples:
-    AllOrderExample:
-      value:
-        orderId: '7524'
-        marketId: BTC-AUD
-        side: Bid
-        type: Limit
-        creationTime: '2019-08-30T11:08:21.956000Z'
-        price: '100.12'
-        amount: '1.034'
-        openAmount: '1.034'
-        status: Accepted
-        clientOrderId: 1234-5678
-        timeInForce: IOC
-        postOnly: false
-        selfTrade: P
-        triggerAmount: '105'
-        targetAmount: '1000'
-      summary: all order attributes
-    CancelledOrderExamples:
-      value:
-      - orderId: '7524'
-        clientOrderId: 123-456
-      - orderId: '435'
-        clientOrderId: abc
-      summary: order cancellation
-    CancelledOrderExample:
-      value:
-        orderId: '7524'
-        clientOrderId: 123-456
-      summary: order cancellation
-    BasicOrderExample:
-      value:
-        orderId: '7524'
-        marketId: BTC-AUD
-        side: Bid
-        type: Limit
-        creationTime: '2019-08-30T11:08:21.956000Z'
-        price: '100.12'
-        amount: '1.034'
-        openAmount: '1.034'
-        status: Accepted
-      summary: basic order attributes
   schemas:
-    CancelOrderResponse:
-      type: object
-      properties:
-        orderId: type:string
-        clientOrderId: type:string
-    ReplaceOrderRequest:
-      type: object
-      required:
-      - price
-      - amount
-      properties:
-        price:
-          description: null
-          type: string
-        amount:
-          description: null
-          type: string
-        clientOrderId:
-          description: optional. a unique order id speciifed by client app.
-          type: string
-    Order:
-      type: object
-      properties:
-        orderId:
-          type: string
-        marketId:
-          type: string
-        side:
-          type: string
-        type:
-          type: string
-        creationTime:
-          type: string
-        price:
-          type: string
-        amount:
-          type: string
-        openAmount:
-          type: string
-        status:
-          type: string
-        triggerPrice:
-          type: string
-        targetAmount:
-          type: string
-        timeInForce:
-          type: string
-        postOnly:
-          type: boolean
-        selfTrade:
-          type: string
-        errorMessage:
-          type: string
-          description: Indicates why the order failed after it was accepted. This attribute is null in most situations except for rare cases where the order is accepted at the point of entry but then rejected by the matching engine (e.g., due to insufficient funds).
-        clientOrderId:
-          type: string
     PlaceOrderRequest:
       type: object
       required:
@@ -396,6 +297,105 @@ components:
         clientOrderId:
           description: a unique order id speciifed by client app.
           type: string
+    Order:
+      type: object
+      properties:
+        orderId:
+          type: string
+        marketId:
+          type: string
+        side:
+          type: string
+        type:
+          type: string
+        creationTime:
+          type: string
+        price:
+          type: string
+        amount:
+          type: string
+        openAmount:
+          type: string
+        status:
+          type: string
+        triggerPrice:
+          type: string
+        targetAmount:
+          type: string
+        timeInForce:
+          type: string
+        postOnly:
+          type: boolean
+        selfTrade:
+          type: string
+        errorMessage:
+          type: string
+          description: Indicates why the order failed after it was accepted. This attribute is null in most situations except for rare cases where the order is accepted at the point of entry but then rejected by the matching engine (e.g., due to insufficient funds).
+        clientOrderId:
+          type: string
+    ReplaceOrderRequest:
+      type: object
+      required:
+      - price
+      - amount
+      properties:
+        price:
+          description: null
+          type: string
+        amount:
+          description: null
+          type: string
+        clientOrderId:
+          description: optional. a unique order id speciifed by client app.
+          type: string
+    CancelOrderResponse:
+      type: object
+      properties:
+        orderId: type:string
+        clientOrderId: type:string
+  examples:
+    CancelledOrderExamples:
+      value:
+      - orderId: '7524'
+        clientOrderId: 123-456
+      - orderId: '435'
+        clientOrderId: abc
+      summary: order cancellation
+    CancelledOrderExample:
+      value:
+        orderId: '7524'
+        clientOrderId: 123-456
+      summary: order cancellation
+    AllOrderExample:
+      value:
+        orderId: '7524'
+        marketId: BTC-AUD
+        side: Bid
+        type: Limit
+        creationTime: '2019-08-30T11:08:21.956000Z'
+        price: '100.12'
+        amount: '1.034'
+        openAmount: '1.034'
+        status: Accepted
+        clientOrderId: 1234-5678
+        timeInForce: IOC
+        postOnly: false
+        selfTrade: P
+        triggerAmount: '105'
+        targetAmount: '1000'
+      summary: all order attributes
+    BasicOrderExample:
+      value:
+        orderId: '7524'
+        marketId: BTC-AUD
+        side: Bid
+        type: Limit
+        creationTime: '2019-08-30T11:08:21.956000Z'
+        price: '100.12'
+        amount: '1.034'
+        openAmount: '1.034'
+        status: Accepted
+      summary: basic order attributes
 x-tagGroups:
 - name: Order Matching
   tags:

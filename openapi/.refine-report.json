@@ -1,7 +1,7 @@
 {
   "provider": "btcmarkets",
   "sources": [
-    "btcmarkets-openapi.yml"
+    "_original/btcmarkets-openapi.yml"
   ],
   "outputs": [
     "btcmarkets-account-apis-api-openapi.yml",
@@ -13,9 +13,7 @@
     "btcmarkets-report-apis-api-openapi.yml",
     "btcmarkets-trade-apis-api-openapi.yml"
   ],
-  "archived": [
-    "archived openapi/btcmarkets-openapi.yml"
-  ],
+  "archived": [],
   "errors": [
     "btcmarkets-openapi.yml: dangling $ref: #/schemas/BatchOrderRequest",
     "btcmarkets-openapi.yml: dangling $ref: #/schemas/BeneficiaryDetail",
@@ -24,6 +22,7 @@
   ],
   "warnings": [],
   "notes": [
+    "sourced from openapi/_original/ (1 archived document(s)); previously refined output at the top level was skipped rather than re-split",
     "btcmarkets-openapi.yml: upgraded openapi 3.0.0 -> OpenAPI 3.2.0",
     "btcmarkets-openapi.yml: declared missing tag: Account APIs",
     "btcmarkets-openapi.yml: declared missing tag: Batch Order APIs",
@@ -33,7 +32,16 @@
     "btcmarkets-openapi.yml: declared missing tag: Order Placement APIs",
     "btcmarkets-openapi.yml: declared missing tag: Report APIs",
     "btcmarkets-openapi.yml: declared missing tag: Trade APIs",
-    "apis.yml register: written (+8 apis, 8 total)"
+    "apis.yml register: already-registered"
   ],
-  "skipped": []
+  "skipped": [
+    "btcmarkets-account-apis-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "btcmarkets-batch-order-apis-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "btcmarkets-fund-management-apis-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "btcmarkets-market-data-apis-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "btcmarkets-misc-apis-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "btcmarkets-order-placement-apis-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "btcmarkets-report-apis-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "btcmarkets-trade-apis-api-openapi.yml: previously refined output, superseded by openapi/_original/"
+  ]
 }

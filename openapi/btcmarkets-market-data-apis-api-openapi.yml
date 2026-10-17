@@ -298,25 +298,6 @@ paths:
       x-operation-id-source: derived
 components:
   examples:
-    MarketsExample:
-      value:
-      - marketId: BTC-AUD
-        baseAssetName: BTC
-        quoteAssetName: AUD
-        minOrderAmount: '0.0001'
-        maxOrderAmount: '1000000'
-        amountDecimals: '8'
-        priceDecimals: '2'
-        status: Online
-      - marketId: LTC-AUD
-        baseAssetName: LTC
-        quoteAssetName: AUD
-        minOrderAmount: '0.001'
-        maxOrderAmount: '1000000'
-        amountDecimals: '8'
-        priceDecimals: '2'
-        status: Post Only
-      summary: list of markets
     MarketTickerExample:
       value:
         marketId: BAT-AUD
@@ -346,6 +327,31 @@ components:
         - '15115'
         - '10.01840031'
       summary: market orderbook level 2
+    MarketTickerListExample:
+      value:
+      - marketId: BTC-AUD
+        bestBid: '9000'
+        bestAsk: '9900'
+        lastPrice: '8500'
+        volume24h: '1444.44'
+        volumeQte24h: '0.523'
+        price24h: '130'
+        pricePct24h: '0.002'
+        low24h: '12'
+        high24h: '50000'
+        timestamp: '2019-07-31T21:32:08.659000Z'
+      - marketId: LTC-AUD
+        bestBid: '99.12'
+        bestAsk: '101.14'
+        lastPrice: '100'
+        volume24h: '1199.8'
+        volumeQte24h: '1.09'
+        price24h: '10'
+        pricePct24h: '0.001'
+        low24h: '100'
+        high24h: '120'
+        timestamp: '2019-05-02T15:22:51.770000Z'
+      summary: market ticker
     MarketOrderbookL1ListExample:
       value:
       - marketId: BAT-AUD
@@ -381,31 +387,6 @@ components:
         - - '10.2611'
           - '17847.844'
       summary: market orderbook level 1
-    MarketTickerListExample:
-      value:
-      - marketId: BTC-AUD
-        bestBid: '9000'
-        bestAsk: '9900'
-        lastPrice: '8500'
-        volume24h: '1444.44'
-        volumeQte24h: '0.523'
-        price24h: '130'
-        pricePct24h: '0.002'
-        low24h: '12'
-        high24h: '50000'
-        timestamp: '2019-07-31T21:32:08.659000Z'
-      - marketId: LTC-AUD
-        bestBid: '99.12'
-        bestAsk: '101.14'
-        lastPrice: '100'
-        volume24h: '1199.8'
-        volumeQte24h: '1.09'
-        price24h: '10'
-        pricePct24h: '0.001'
-        low24h: '100'
-        high24h: '120'
-        timestamp: '2019-05-02T15:22:51.770000Z'
-      summary: market ticker
     MarketTradesExample:
       value:
       - id: '4107372347'
@@ -419,6 +400,25 @@ components:
         timestamp: '2019-09-02T12:15:29.570000Z'
         side: Bid
       summary: market trades
+    MarketsExample:
+      value:
+      - marketId: BTC-AUD
+        baseAssetName: BTC
+        quoteAssetName: AUD
+        minOrderAmount: '0.0001'
+        maxOrderAmount: '1000000'
+        amountDecimals: '8'
+        priceDecimals: '2'
+        status: Online
+      - marketId: LTC-AUD
+        baseAssetName: LTC
+        quoteAssetName: AUD
+        minOrderAmount: '0.001'
+        maxOrderAmount: '1000000'
+        amountDecimals: '8'
+        priceDecimals: '2'
+        status: Post Only
+      summary: list of markets
     MarketOrderbookL1Example:
       value:
         marketId: BAT-AUD

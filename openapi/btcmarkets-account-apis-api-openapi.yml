@@ -110,31 +110,6 @@ paths:
       x-operation-id-source: derived
 components:
   examples:
-    BalanceListExample:
-      value:
-      - assetName: LTC
-        balance: '5'
-        available: '5'
-        locked: '0'
-      - assetName: ETH
-        balance: '1.07583642'
-        available: '1.0'
-        locked: '0.07583642'
-      summary: balance list example
-    TradingFeeExample:
-      value:
-        volume30Day: '0.0098275'
-        feeByMarkets:
-        - makerFeeRate: '0.00849999'
-          takerFeeRate: '0.00849999'
-          marketId: BTC-AUD
-        - makerFeeRate: '0.00849999'
-          takerFeeRate: '0.00849999'
-          marketId: LTC-AUD
-        - makerFeeRate: '0.0022'
-          takerFeeRate: '0.0022'
-          marketId: LTC-BTC
-      summary: trading fees example
     TransactionListExample:
       value:
       - id: '1759'
@@ -178,6 +153,31 @@ components:
         recordType: Transfer
         referenceId: '8808'
       summary: transaction list example
+    BalanceListExample:
+      value:
+      - assetName: LTC
+        balance: '5'
+        available: '5'
+        locked: '0'
+      - assetName: ETH
+        balance: '1.07583642'
+        available: '1.0'
+        locked: '0.07583642'
+      summary: balance list example
+    TradingFeeExample:
+      value:
+        volume30Day: '0.0098275'
+        feeByMarkets:
+        - makerFeeRate: '0.00849999'
+          takerFeeRate: '0.00849999'
+          marketId: BTC-AUD
+        - makerFeeRate: '0.00849999'
+          takerFeeRate: '0.00849999'
+          marketId: LTC-AUD
+        - makerFeeRate: '0.0022'
+          takerFeeRate: '0.0022'
+          marketId: LTC-BTC
+      summary: trading fees example
 x-tagGroups:
 - name: Order Matching
   tags:
