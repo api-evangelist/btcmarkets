@@ -64,5 +64,145 @@
 > Full detail: **[Where this data comes from](https://apievangelist.com/about/where-our-data-comes-from)**
 <!-- API-EVANGELIST-PROVENANCE:END -->
 
-BTC Markets is a company surfaced via the API Evangelist harvest backlog (source: market-gap) and added to the network as a stub for full-pipeline profiling.
-- https://www.btcmarkets.net
+BTC Markets is an Australian cryptocurrency exchange. Its public v3 REST API at api.btcmarkets.net covers market data (markets, tickers, order books, trades, candles), trading (orders, batch orders, trades), funding (deposits, withdrawals, transfers, addresses) and account data (balances, fees, transactions, reports), with a WebSocket feed at wss://socket.btcmarkets.net/v2 and a FIX API.
+
+**Areas:** Company · Cryptocurrency · Exchange · Trading · Market Data · Australia
+
+## BTC Markets on APIs.io
+
+Everything profiled for BTC Markets is published on APIs.io rather than in this repository. Start at the provider page — **[apis.io/providers/btcmarkets/](https://apis.io/providers/btcmarkets/)** — or go straight to one of the APIs or properties below.
+
+### APIs (8)
+
+- [BTC Markets Account APIs API](https://apis.io/apis/btcmarkets/btcmarkets-account-apis-api/) — The Account APIs API from BTC Markets — 4 operation(s) for account apis.
+- [BTC Markets Batch Order APIs API](https://apis.io/apis/btcmarkets/btcmarkets-batch-order-apis-api/) — The Batch Order APIs API from BTC Markets — 2 operation(s) for batch order apis.
+- [BTC Markets Fund Management APIs API](https://apis.io/apis/btcmarkets/btcmarkets-fund-management-apis-api/) — The Fund Management APIs API from BTC Markets — 9 operation(s) for fund management apis.
+- [BTC Markets Market Data APIs API](https://apis.io/apis/btcmarkets/btcmarkets-market-data-apis-api/) — The Market Data APIs API from BTC Markets — 7 operation(s) for market data apis.
+- [BTC Markets Misc APIs API](https://apis.io/apis/btcmarkets/btcmarkets-misc-apis-api/) — The Misc APIs API from BTC Markets — 1 operation(s) for misc apis.
+- [BTC Markets Order Placement APIs API](https://apis.io/apis/btcmarkets/btcmarkets-order-placement-apis-api/) — The Order Placement APIs API from BTC Markets — 2 operation(s) for order placement apis.
+- [BTC Markets Report APIs API](https://apis.io/apis/btcmarkets/btcmarkets-report-apis-api/) — The Report APIs API from BTC Markets — 2 operation(s) for report apis.
+- [BTC Markets Trade APIs API](https://apis.io/apis/btcmarkets/btcmarkets-trade-apis-api/) — The Trade APIs API from BTC Markets — 2 operation(s) for trade apis.
+
+### Published properties
+
+Each property below is a page on APIs.io carrying the machine-readable artifact and what it says.
+
+#### MCP servers (1)
+
+Model Context Protocol servers that expose the API to agents.
+
+- [btcmarkets-mcp.yml](https://apis.io/servers/btcmarkets/btcmarkets-mcp-yml/)
+
+#### Agentic access (1)
+
+Which operations an agent can call, which act, and which need a human in the loop.
+
+- [Btcmarkets Agentic Access](https://apis.io/agentic-access/btcmarkets/btcmarkets-agentic-access/)
+
+#### JSON Schema (6)
+
+The data models the API reads and writes.
+
+- [CancelOrderResponse](https://apis.io/schemas/btcmarkets/btcmarkets-cancel-order-response/)
+- [CreateReportRequest](https://apis.io/schemas/btcmarkets/btcmarkets-create-report-request/)
+- [CreateWithdrawRequest](https://apis.io/schemas/btcmarkets/btcmarkets-create-withdraw-request/)
+- [Order](https://apis.io/schemas/btcmarkets/btcmarkets-order/)
+- [PlaceOrderRequest](https://apis.io/schemas/btcmarkets/btcmarkets-place-order-request/)
+- [ReplaceOrderRequest](https://apis.io/schemas/btcmarkets/btcmarkets-replace-order-request/)
+
+#### JSON-LD (1)
+
+Linked-data contexts for the provider's vocabulary.
+
+- [Btcmarkets Context](https://apis.io/jsonld/btcmarkets/btcmarkets-context/)
+
+#### Governance rules (1)
+
+Spectral rulesets for the provider's contracts.
+
+- [BTC Markets API Rules](https://apis.io/rules/btcmarkets/btcmarkets-rules/)
+
+#### Security (3)
+
+Authentication, trust centre, and vulnerability disclosure.
+
+- [Btcmarkets Domain Security](https://apis.io/security/btcmarkets/btcmarkets-domain-security/)
+- [Btcmarkets Trust Center](https://apis.io/security/btcmarkets/btcmarkets-trust-center/)
+- [Btcmarkets Vulnerability Disclosure](https://apis.io/security/btcmarkets/btcmarkets-vulnerability-disclosure/)
+
+#### Rate limits (1)
+
+Published request limits.
+
+- [Btcmarkets Rate Limits](https://apis.io/rate-limits/btcmarkets/btcmarkets-rate-limits/)
+
+## Where to find this API
+
+Links to the company's own pages. This repository publishes no copy of their specifications — the canonical document is theirs and lives at the URLs below.
+
+- [Website](https://www.btcmarkets.net)
+- [Documentation](https://docs.btcmarkets.net/)
+- [Pricing](https://www.btcmarkets.net/prices)
+- [Support](https://support.btcmarkets.net/)
+- [Blog](https://www.btcmarkets.net/blog)
+- [Security](https://www.btcmarkets.net/blog/security)
+- [Compliance](https://trust.btcmarkets.net/)
+- [Terms of service](https://www.btcmarkets.net/terms-of-service)
+- [Privacy policy](https://www.btcmarkets.net/privacy-policy)
+- [GitHub](https://github.com/BTCMarkets)
+- [Status](https://status.btcmarkets.net/)
+
+## API Evangelist rating
+
+**Kin Score 49.5** — developing · rubric 0.25.0 · scored 2026-10-23
+
+| Facet | Score |
+|---|---|
+| Discoverability | 66.1 |
+| Contract quality | 59.3 |
+| Contract governance | 22.0 |
+| Operational transparency | 63.2 |
+| Developer ergonomics | 23.8 |
+| Access clarity | 60.5 |
+
+**Agent readiness 26.3** — agent-aware
+
+| Agent-readiness dimension | Result |
+|---|---|
+| Spec Presence | yes |
+| Agentic Access | derived (partial credit) |
+| Reversibility Documented | documented (partial credit) |
+| MCP Server | — |
+| Auth Clarity | — |
+| Idempotency | — |
+| Error Semantics | derived (partial credit) |
+| OpenAPI Examples | verified |
+| Rate Limit Signal | documented (partial credit) |
+| Event Surface Described | — |
+| Agent Skills | — |
+| Well Known Catalog | — |
+| Consent Identity | — |
+| Agent Card | — |
+| Dry Run Mode | — |
+| Delegated Identity | — |
+| Protected Resource Metadata | — |
+| Dynamic Client Registration | — |
+| Agentic Commerce | — |
+| Pagination Ratio | na |
+| Operation Distinctiveness | distinct |
+
+**Regulatory alignment 27.8** — Securities & Market Data
+
+The rubric is published at [github.com/api-evangelist/kin-score](https://github.com/api-evangelist/kin-score). The per-check breakdown behind these numbers — which checks were earned, partial or missed — along with score history and how this provider compares to its peers, is available at [apis.io/providers/btcmarkets/](https://apis.io/providers/btcmarkets/).
+
+## How this profile is made
+
+API Evangelist profiles a company's public API surface the way a developer would find it: the website, developer portal and documentation, the specifications it publishes, its public repositories, and its pricing, status and changelog pages. From that it derives the properties above — contracts split per API, workflows, schemas, collections, governance rules, plans and rate limits — and scores them against the published [Kin Score rubric](https://github.com/api-evangelist/kin-score).
+
+The artifacts are published on [APIs.io](https://apis.io), not in this repository. This repository is the public record for BTC Markets: the place to say something is wrong, missing or out of date, and to ask for a re-score or a removal.
+
+## Open an issue
+
+- **Something about this listing** — a wrong description, a missing API, a stale artifact or a question about the rating: [open an issue on this repository](https://github.com/api-evangelist/btcmarkets/issues/new).
+- **A new API, or one that is not in the catalog yet** — [submit it on APIs.io](https://apis.io/add/).
+- **Anything else** — [the APIs.io inbox](https://github.com/api-search/inbox/issues/new) or [info@apievangelist.com](mailto:info@apievangelist.com).
